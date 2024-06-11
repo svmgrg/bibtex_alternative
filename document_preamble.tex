@@ -1,0 +1,288 @@
+%======================================================================
+% Include packages
+%----------------------------------------------------------------------
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{bbm}
+\usepackage{cancel}
+\usepackage{csquotes}
+\usepackage{etoolbox} %% <- for \pretocmd and \apptocmd
+\usepackage[margin=1in]{geometry} %% \usepackage{fullpage}
+\usepackage{graphicx}
+%% \usepackage{IEEEtrantools} %% uncomment if you use this environment
+\usepackage{lineno}
+\usepackage{lipsum}
+\usepackage{longtable}
+\usepackage{makecell}
+\usepackage{mathtools} %% for \bigtimes
+\usepackage{multirow}
+\usepackage{nicefrac}
+\usepackage{setspace}
+\usepackage{thmtools, thm-restate}
+\usepackage{titling}
+\usepackage[nottoc]{tocbibind} % for adding list of figures to the table of contents
+\usepackage[normalem]{ulem}
+\usepackage{xcolor}
+
+%% for incorporating extra symbols
+\usepackage{skull} %% remember, the symbol 'C' is much better
+
+\RequirePackage[hyphens]{url}
+\PassOptionsToPackage{hyphens}{url}
+\usepackage{hyperref}
+%% https://tex.stackexchange.com/questions/823/remove-ugly-borders-around-clickable-cross-references-and-hyperlinks
+%% \usepackage[hidelinks]{hyperref}
+\hypersetup{
+  colorlinks,
+  linkcolor={red!33!black},
+  citecolor={blue!33!black},
+  urlcolor={blue!33!black}
+}
+
+%% for using biblatex (https://tug.ctan.org/info/biblatex-cheatsheet/biblatex-cheatsheet.pdf)
+%% Also, see Section 3 of https://mirror.csclub.uwaterloo.ca/CTAN/macros/latex/contrib/biblatex/doc/biblatex.pdf
+%% \usepackage{babel,csquotes,xpatch}
+%% \usepackage[backend=biber, style=authoryear-comp, giveninits=true]{biblatex}
+%% \DeclareNameAlias{author}{last-first} %% https://tex.stackexchange.com/questions/290103/get-last-name-first-in-biblatex-using-numeric-style
+\newcommand{\bib}{\hyperlink}
+
+%% for showing the label keys in the document margins
+%% adapted from https://tex.stackexchange.com/questions/148579/tweak-showlabels-showkeys-wrap-the-label
+\usepackage{seqsplit}
+\usepackage[notref, notcite]{showkeys}
+\usepackage{xstring}
+\renewcommand*\showkeyslabelformat[1]{%
+  \noexpandarg%
+  \StrSubstitute{\(\{\)#1\(\}\)}{ }{\textvisiblespace}[\TEMP]%
+  \framebox{\parbox[c]{\marginparwidth}{\raggedright\tiny\ttfamily\expandafter\seqsplit\expandafter{\TEMP}}}}
+
+%======================================================================
+% Math declarations
+%----------------------------------------------------------------------
+%% for help with these, look at the thmtools-manual.pdf
+\declaretheoremstyle[bodyfont=\normalfont, shaded={rulecolor=black,
+rulewidth=0.5pt, bgcolor=black!5!white}]{normalfont}
+\declaretheorem[numberwithin=section, style=normalfont]{theorem, assumption}
+\declaretheorem[numberlike=theorem, style=normalfont]{lemma, proposition, example, corollary, definition, remark, observation}
+
+\newcommand{\fclrbx}[2]{\fcolorbox{#1!67!black}{#1!5!white}{#2}} %% https://tex.stackexchange.com/questions/446548/how-to-change-the-default-border-color-of-fbox
+
+%% copied from /usr/local/texlive/2023/texmf-dist/tex/latex/amscls/amsthm.sty
+%% changed the \itshape in the original command to
+%% for explanation about the commands \makeatletter or \makeatother, see https://tex.stackexchange.com/questions/8351/what-do-makeatletter-and-makeatother-do
+\makeatletter
+\newenvironment{boldproof}[1][\proofname]{\par
+  \pushQED{\qed}%
+  \normalfont \topsep6\p@\@plus6\p@\relax
+  \trivlist
+  \item[\hskip\labelsep
+        \bfseries % \itshape
+    #1\@addpunct{.}]\ignorespaces
+}{%
+  \popQED\endtrivlist\@endpefalse
+}
+\makeatother
+
+\newcommand{\union}{\cup}
+\newcommand{\intersect}{\cap}
+\newcommand{\Union}{\bigcup}
+\newcommand{\Intersect}{\bigcap}
+
+\newcommand{\eps}{\varepsilon} %% \newcommand{\vareps}{\varepsilon}
+
+\DeclareMathOperator*{\linf}{\lim\inf}
+\DeclareMathOperator*{\lsup}{\lim\sup}
+\DeclareMathOperator*{\argsup}{\arg\sup}
+\DeclareMathOperator*{\arginf}{\arg\inf}
+\DeclareMathOperator*{\argmax}{\arg\max}
+\DeclareMathOperator*{\argmin}{\arg\min}
+\DeclareMathOperator*{\esssup}{\text{ess}\sup}
+
+\DeclareMathOperator{\prob}{\mathbb{P}}
+\DeclareMathOperator{\Cov}{\mathrm{Cov}}
+\DeclareMathOperator{\TTM}{\text{TTM}}
+\DeclareMathOperator{\diag}{\mathrm{diag}}
+\DeclareMathOperator{\clip}{\mathrm{clip}}
+\DeclareMathOperator{\cond}{\mathrm{cond}}
+\DeclareMathOperator{\True}{\mathrm{True}}
+\DeclareMathOperator{\sgn}{\mathrm{sgn}}
+\DeclareMathOperator{\df}{\mathrm{d}\hspace{-0.07cm}}
+
+\DeclareMathOperator{\comp}{\texttt{c}} %% for set complement
+
+\DeclareMathOperator{\cA}{\mathcal{A}}
+\DeclareMathOperator{\cB}{\mathcal{B}}
+\DeclareMathOperator{\cC}{\mathcal{C}}
+\DeclareMathOperator{\cD}{\mathcal{D}}
+\DeclareMathOperator{\cE}{\mathcal{E}}
+\DeclareMathOperator{\cF}{\mathcal{F}}
+\DeclareMathOperator{\cG}{\mathcal{G}}
+\DeclareMathOperator{\cH}{\mathcal{H}}
+\DeclareMathOperator{\cI}{\mathcal{I}}
+\DeclareMathOperator{\cJ}{\mathcal{J}}
+\DeclareMathOperator{\cK}{\mathcal{K}}
+\DeclareMathOperator{\cL}{\mathcal{L}}
+\DeclareMathOperator{\cM}{\mathcal{M}}
+\DeclareMathOperator{\cN}{\mathcal{N}}
+\DeclareMathOperator{\cO}{\mathcal{O}}
+\DeclareMathOperator{\cP}{\mathcal{P}}
+\DeclareMathOperator{\cQ}{\mathcal{Q}}
+\DeclareMathOperator{\cR}{\mathcal{R}}
+\DeclareMathOperator{\cS}{\mathcal{S}}
+\DeclareMathOperator{\cT}{\mathcal{T}}
+\DeclareMathOperator{\cU}{\mathcal{U}}
+\DeclareMathOperator{\cV}{\mathcal{V}}
+\DeclareMathOperator{\cW}{\mathcal{W}}
+\DeclareMathOperator{\cX}{\mathcal{X}}
+\DeclareMathOperator{\cY}{\mathcal{Y}}
+\DeclareMathOperator{\cZ}{\mathcal{Z}}
+
+\DeclareMathOperator{\rA}{\mathrm{A}}
+\DeclareMathOperator{\rB}{\mathrm{B}}
+\DeclareMathOperator{\rC}{\mathrm{C}}
+\DeclareMathOperator{\rD}{\mathrm{D}}
+\DeclareMathOperator{\rE}{\mathrm{E}}
+\DeclareMathOperator{\rF}{\mathrm{F}}
+\DeclareMathOperator{\rG}{\mathrm{G}}
+\DeclareMathOperator{\rH}{\mathrm{H}}
+\DeclareMathOperator{\rI}{\mathrm{I}}
+\DeclareMathOperator{\rJ}{\mathrm{J}}
+\DeclareMathOperator{\rK}{\mathrm{K}}
+\DeclareMathOperator{\rL}{\mathrm{L}}
+\DeclareMathOperator{\rM}{\mathrm{M}}
+\DeclareMathOperator{\rN}{\mathrm{N}}
+\DeclareMathOperator{\rO}{\mathrm{O}}
+\DeclareMathOperator{\rP}{\mathrm{P}}
+\DeclareMathOperator{\rQ}{\mathrm{Q}}
+\DeclareMathOperator{\rR}{\mathrm{R}}
+\DeclareMathOperator{\rS}{\mathrm{S}}
+\DeclareMathOperator{\rT}{\mathrm{T}}
+\DeclareMathOperator{\rU}{\mathrm{U}}
+\DeclareMathOperator{\rV}{\mathrm{V}}
+\DeclareMathOperator{\rW}{\mathrm{W}}
+\DeclareMathOperator{\rX}{\mathrm{X}}
+\DeclareMathOperator{\rY}{\mathrm{Y}}
+\DeclareMathOperator{\rZ}{\mathrm{Z}}
+
+%% The operators \EE and \VV are starred because they denote 
+%% the expectation and the variance operators respectively
+%% The starred variant puts subscript below the letter (recall \lim)
+
+\DeclareMathOperator{\AAA}{\mathbb{A}} %% \AA already defined
+\DeclareMathOperator{\BB}{\mathbb{B}}
+\DeclareMathOperator{\CC}{\mathbb{C}}
+\DeclareMathOperator{\DD}{\mathbb{D}}
+\DeclareMathOperator*{\EE}{\mathbb{E}} %% for 'proper' subscript
+\DeclareMathOperator{\FF}{\mathbb{F}}
+\DeclareMathOperator{\GG}{\mathbb{G}}
+\DeclareMathOperator{\HH}{\mathbb{H}}
+\DeclareMathOperator{\II}{\mathbb{I}}
+\DeclareMathOperator{\JJ}{\mathbb{J}}
+\DeclareMathOperator{\KK}{\mathbb{K}}
+\DeclareMathOperator{\LL}{\mathbb{L}}
+\DeclareMathOperator{\MM}{\mathbb{M}}
+\DeclareMathOperator{\NN}{\mathbb{N}}
+\DeclareMathOperator{\OO}{\mathbb{O}}
+\DeclareMathOperator{\PP}{\mathbb{P}}
+\DeclareMathOperator{\QQ}{\mathbb{Q}}
+\DeclareMathOperator{\RR}{\mathbb{R}}
+\DeclareMathOperator{\SSS}{\mathbb{S}} %% \SS already defined
+\DeclareMathOperator{\TT}{\mathbb{T}}
+\DeclareMathOperator{\UU}{\mathbb{U}}
+\DeclareMathOperator*{\VV}{\mathbb{V}} %% for 'proper' subscript
+\DeclareMathOperator{\WW}{\mathbb{W}}
+\DeclareMathOperator{\XX}{\mathbb{X}}
+\DeclareMathOperator{\YY}{\mathbb{Y}}
+\DeclareMathOperator{\ZZ}{\mathbb{Z}}
+
+\DeclareMathOperator{\avec}{\bf a}
+\DeclareMathOperator{\bvec}{\bf b}
+\DeclareMathOperator{\cvec}{\bf c}
+\DeclareMathOperator{\dvec}{\bf d}
+\DeclareMathOperator{\evec}{\bf e}
+\DeclareMathOperator{\fvec}{\bf f}
+\DeclareMathOperator{\gvec}{\bf g}
+\DeclareMathOperator{\hvec}{\bf h}
+\DeclareMathOperator{\ivec}{\bf i}
+\DeclareMathOperator{\jvec}{\bf j}
+\DeclareMathOperator{\kvec}{\bf k}
+\DeclareMathOperator{\lvec}{\bf l}
+\DeclareMathOperator{\mvec}{\bf m}
+\DeclareMathOperator{\nvec}{\bf n}
+\DeclareMathOperator{\ovec}{\bf o}
+\DeclareMathOperator{\pvec}{\bf p}
+\DeclareMathOperator{\qvec}{\bf q}
+\DeclareMathOperator{\rvec}{\bf r}
+\DeclareMathOperator{\svec}{\bf s}
+\DeclareMathOperator{\tvec}{\bf t}
+\DeclareMathOperator{\uvec}{\bf u}
+\DeclareMathOperator{\vvec}{\bf v}
+\DeclareMathOperator{\wvec}{\bf w}
+\DeclareMathOperator{\xvec}{\bf x}
+\DeclareMathOperator{\yvec}{\bf y}
+\DeclareMathOperator{\zvec}{\bf z}
+
+\DeclareMathOperator{\Avec}{\bf A}
+\DeclareMathOperator{\Bvec}{\bf B}
+\DeclareMathOperator{\Cvec}{\bf C}
+\DeclareMathOperator{\Dvec}{\bf D}
+\DeclareMathOperator{\Evec}{\bf E}
+\DeclareMathOperator{\Fvec}{\bf F}
+\DeclareMathOperator{\Gvec}{\bf G}
+\DeclareMathOperator{\Hvec}{\bf H}
+\DeclareMathOperator{\Ivec}{\bf I}
+\DeclareMathOperator{\Jvec}{\bf J}
+\DeclareMathOperator{\Kvec}{\bf K}
+\DeclareMathOperator{\Lvec}{\bf L}
+\DeclareMathOperator{\Mvec}{\bf M}
+\DeclareMathOperator{\Nvec}{\bf N}
+\DeclareMathOperator{\Ovec}{\bf O}
+\DeclareMathOperator{\Pvec}{\bf P}
+\DeclareMathOperator{\Qvec}{\bf Q}
+\DeclareMathOperator{\Rvec}{\bf R}
+\DeclareMathOperator{\Svec}{\bf S}
+\DeclareMathOperator{\Tvec}{\bf T}
+\DeclareMathOperator{\Uvec}{\bf U}
+\DeclareMathOperator{\Vvec}{\bf V}
+\DeclareMathOperator{\Wvec}{\bf W}
+\DeclareMathOperator{\Xvec}{\bf X}
+\DeclareMathOperator{\Yvec}{\bf Y}
+\DeclareMathOperator{\Zvec}{\bf Z}
+
+\DeclareMathOperator{\onevec}{\boldsymbol{1}}
+\DeclareMathOperator{\zerovec}{\boldsymbol{0}}
+\DeclareMathOperator{\thetavec}{\boldsymbol{\theta}}
+\DeclareMathOperator{\muvec}{\boldsymbol{\mu}}
+\DeclareMathOperator{\etavec}{\boldsymbol{\eta}}
+\DeclareMathOperator{\sigmavec}{\boldsymbol{\sigma}}
+\DeclareMathOperator{\pivec}{\boldsymbol{\pi}}
+\DeclareMathOperator{\varrhovec}{\boldsymbol{\varrho}}
+\DeclareMathOperator{\Lambdavec}{\boldsymbol{\Lambda}}
+\DeclareMathOperator{\omegavec}{\boldsymbol{\omega}}
+
+\DeclareMathOperator{\maj}{\textrm{majority}}
+\DeclareMathOperator{\err}{\textrm{err}}
+\DeclareMathOperator{\softmax}{\textrm{softmax}}
+\DeclareMathOperator{\Log}{\textrm{Log}}
+\DeclareMathOperator{\Ln}{\textrm{Ln}}
+\DeclareMathOperator{\iid}{\textrm{iid}}
+\DeclareMathOperator{\ER}{\textrm{ER}}
+\DeclareMathOperator{\opt}{\textrm{opt}}
+
+\DeclareMathOperator{\bigpipe}{\;\big\pipe\;}
+\DeclareMathOperator{\Bigpipe}{\;\Big\pipe\;}
+\DeclareMathOperator{\biggpipe}{\;\bigg\pipe\;}
+\DeclareMathOperator{\Biggpipe}{\;\Bigg\pipe\;}
+
+\DeclarePairedDelimiter{\set}{\{}{\}}
+\DeclarePairedDelimiter{\size}{\lvert}{\rvert}
+\DeclarePairedDelimiter{\innerprod}{\langle}{\rangle}
+\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+\DeclarePairedDelimiter{\floor}{\lfloor}{\rfloor}
+\DeclarePairedDelimiter{\group}{(}{)}
+\DeclarePairedDelimiter{\norm}{\|}{\|}
+
+\newcommand{\shivam}[1]{\textcolor{red}{(SG: #1)}}

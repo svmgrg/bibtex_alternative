@@ -22,22 +22,17 @@ args = parser.parse_args()
 bibtex_filename = args.input_filename
 output_filename = args.output_filename
 
+
+
+# pdb.set_trace()
 reference_list = process_bibtex_into_reference_list(bibtex_filename)
 
-pdb.set_trace()
 # what to do about capitalization??
     
-# go through all the data and create a list of dictionaries having
-# - author names
-# - year
-# - title
-# - publisher
-# - type of publication: book or article
-# Throw away all the other data
 
 # if it's a book, make the title italic
 # if it's a paper, make the publisher italic
-# modify the author names (Sutton R.S., Barto A.) --- Lastname Initials., ... there is no "and" separating the names, just a "comma"
+
 
 # sort the entire list with author name
 
@@ -59,6 +54,7 @@ pdb.set_trace()
 #=================================
 # <bib_file>
 #---------------------------------
+# ? any messages ?
 # processed text entry
 # <or say repeated, hence ignored
 #=================================

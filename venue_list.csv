@@ -21,7 +21,7 @@ EMNLP,Empirical Methods in Natural Language Processing,empirical methods in natu
 FOCS,Symposium on Foundations of Computer Science,foundations of computer science
 ICAPS,International Conference on Automated Planning and Scheduling,automated planning and scheduling
 ICCV,International Conference on Computer Vision,international conference on computer vision
-ICLR,International Conference on Learning Representations,learning representations
+ICLR,International Conference on Learning Representations,conference on learning representations
 ICML,International Conference on Machine Learning,conference on machine learning
 IJCAI,International Joint Conference on Artificial Intelligence,joint conference on artificial intelligence
 JMLR,Journal of Machine Learning Research,journal of machine learning research
@@ -34,3 +34,4 @@ UAI,Conference on Uncertainty in Artificial Intelligence,uncertainty in artifici
 UIST,ACM Symposium on User Interface Software and Technology,user interface software and technology
 VLDB,International Conference on Very Large Data Bases,very large data bases
 WWW,World Wide Web Conference,world wide web conference
+??,Cambridge University Press,cambridge university press

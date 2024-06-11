@@ -1,0 +1,16 @@
+*~
+*.log
+*.aux
+*.out
+*.blg
+*.bbl
+*.bcf
+*.xml
+*.toc
+
+*.fdb_latexmk
+*.fls
+*.pdf
+*.xoj
+
+*.tar.gz
