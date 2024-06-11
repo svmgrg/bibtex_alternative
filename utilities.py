@@ -1,6 +1,5 @@
+import pandas
 import re
-import pandas as pd
-import warnings
 import pdb
 
 # based on https://en.wikipedia.org/wiki/BibTeX
@@ -35,12 +34,17 @@ bib_entry_types = {
                     'venue': 'note' }
 }
 
-venue_list = pd.read_csv('venue_list.csv')
+venue_list = pandas.read_csv('venue_list.csv')
 
-#--------------------------------------------------------------------
-# find the bibliography type
-#--------------------------------------------------------------------
-def process_bibliography_type(raw_bib_type):
+def find_bibliography_type(raw_bib_type):
+    '''
+    Input: a string containing the individual bibtex entry
+    Output: string containing the type of the bibliography, i.e.
+            fields such as 'article', 'book', 'misc', etc.
+
+    Note: Does not work if there is
+    @Comment commented text in the .bib file!!
+    '''
     bib_type = re.findall(r'[a-z]+', raw_bib_type)[0]
     if bib_type not in bib_entry_types:
         raise ValueError(
@@ -49,10 +53,7 @@ def process_bibliography_type(raw_bib_type):
             ' "bib_entry_types" to proceed.)'.format(bib_dict['type']))
     return bib_type
 
-#--------------------------------------------------------------------
-# author list
-#--------------------------------------------------------------------
-def process_author_list(raw_bib_info):
+def find_author_list(raw_bib_info):
     '''
     Input: a string containing the individual bibtex entry
     Output: list of strings, each containing the author names
@@ -128,10 +129,7 @@ def process_author_list(raw_bib_info):
                                       'first_names': first_names})
     return processed_author_list
 
-#--------------------------------------------------------------------
-# year info
-#--------------------------------------------------------------------
-def process_year(raw_bib_info):
+def find_year(raw_bib_info):
     '''
     Input: a string containing the individual bibtex entry
     Output: a string containing the year of publication
@@ -146,10 +144,7 @@ def process_year(raw_bib_info):
     
     return year
 
-#--------------------------------------------------------------------
-# title
-#--------------------------------------------------------------------
-def process_title(raw_bib_info):
+def find_title(raw_bib_info):
     '''
     Input: a string containing the individual bibtex entry
     Output: a string containing BibTeX entry's title (verbatim).
@@ -159,10 +154,7 @@ def process_title(raw_bib_info):
     
     return parenthetical_text
 
-#--------------------------------------------------------------------
-# venue
-#--------------------------------------------------------------------
-def process_venue_name(bib_dict_type, raw_bib_info):
+def find_venue(bib_dict_type, raw_bib_info):
     '''
     Input: a string containing the individual bibtex entry
     Output: a string containing the publication venue
@@ -222,8 +214,10 @@ def process_venue_name(bib_dict_type, raw_bib_info):
                     
         if not FLAG_FOUND_VENUE:
             raise ValueError(
-                'Unknown publication venue:\n{}\n\nPlease add this'\
-                'to the CSV file.'.format(parenthetical_text))
+                '\n{}\nUnknown publication venue: {}'
+                '\nPlease add this to the CSV file.\n{}{}\n'.format(
+                    '=' * 64, parenthetical_text, '-' * 64,
+                    raw_bib_info, '=' * 64))
     return processed_venue_name
 
 #--------------------------------------------------------------------
@@ -270,12 +264,11 @@ def process_bibtex_into_reference_list(bibtex_filename):
         })
         
         bib_dict['raw_data'] = raw_bib_type + raw_bib_info
-        bib_dict['type'] = process_bibliography_type(raw_bib_type)
-        bib_dict['author_list'] = process_author_list(raw_bib_info)
-        bib_dict['year'] = process_year(raw_bib_info)
-        bib_dict['title'] = process_title(raw_bib_info)
-        bib_dict['venue'] = process_venue_name(bib_dict['type'],
-                                               raw_bib_info)
+        bib_dict['type'] = find_bibliography_type(raw_bib_type)
+        bib_dict['author_list'] = find_author_list(raw_bib_info)
+        bib_dict['year'] = find_year(raw_bib_info)
+        bib_dict['title'] = find_title(raw_bib_info)
+        bib_dict['venue'] = find_venue(bib_dict['type'], raw_bib_info)
         reference_list.append(bib_dict)
 
     return reference_list
@@ -313,14 +306,17 @@ def sort_and_create_keys_for_references(reference_list):
            and ref1['year'] == ref2['year']:
             
             if ref1['title'] == ref2['title']:
-                warnings.warn('\nDuplicate entries found!\n{}\n{}'.format(
-                    ref1['raw_data'], ref2['raw_data']))
+                print('{}\nWarning: Duplicate entries!\n{}'
+                      '\n{}{}\n{}{}\n'.format('=' * 64, '-' * 64,
+                                              ref1['raw_data'], '-' * 64,
+                                              ref2['raw_data'], '='*64))
                 ref2['duplicate'] = True
             else:
+                print('{}\nWarning: Possibly Duplicate entries!\n{}'
+                      '\n{}{}\n{}{}\n'.format('=' * 64, '-' * 64,
+                                              ref1['raw_data'], '-' * 64,
+                                              ref2['raw_data'], '='*64))
                 ref2['possible_duplicate'] = True
-                warnings.warn('Possibly duplicate entries!'\
-                              '\n{}\n{}'.format(ref1['raw_data'],
-                                                ref2['raw_data']))
 
     #-----------------------------------------------------------------
     # create LaTeX reference keys for the non-duplicate entries
@@ -347,7 +343,10 @@ def sort_and_create_keys_for_references(reference_list):
                 reference['author_list'][0]['last_name'],
                 reference['year'])
         # remove any spaces and make everything lower case
-        reference['key'] = key_string.replace(' ', '').lower() 
+        reference['key'] = key_string.replace('{', '')\
+                                     .replace('}', '')\
+                                     .replace(' ', '')\
+                                     .lower()
 
     #-----------------------------------------------------------------
     # if two references have the same key, then add year index, i.e.
@@ -378,12 +377,13 @@ def sort_and_create_keys_for_references(reference_list):
 def layout_latex_references(reference_list):
     for reference in reference_list:
         if not reference['duplicate']:
-            print('{} ({}{}). {}. {}.\n'.format(
+            print('{} ({}{}). {}. {}.\n{}\n'.format(
                 reference['author_string'],
                 reference['year'],
                 reference['year_index'],
                 reference['title'],
-                reference['venue']))
+                reference['venue'],
+                reference['key']))
 
 # if bib_dict['type'] in bib_types_list['paper_like']:
 #     pass
