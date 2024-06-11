@@ -59,13 +59,14 @@ def process_author_list(raw_bib_info):
 
     Notes:    
     The bibtex file contains author list separated by the "and" keyword.  
-    DBLP and arXiv list each author as" <first names> <lastname>", whereas
-    Google Scholar lists each author as "<lastname>, <first names>".
+    DBLP and arXiv list each author as" <first names> <last_name>",
+    whereas Google Scholar lists each author as
+    "<last_name>, <first names>".
 
     This function creates a list of authors in the original order as the
     bibtex entry. Each author is stored as dictionary of the type
-    {'lastname': <lastname>, 'first_names': <initials of first names>}.
-    For example: {'lastname': 'Feynman', 'first_names': 'R.P.'}.
+    {'last_name': <last_name>, 'first_names': <initials of first names>}.
+    For example: {'last_name': 'Feynman', 'first_names': 'R.P.'}.
 
     Please note that there is no "," separating the names, i.e. we don't
     write "Feynman, R.P.". (Although, this behavior can be easily
@@ -74,13 +75,13 @@ def process_author_list(raw_bib_info):
     If the name is not separated by a ',', and has words like'van',
     then that is put in the last name. For instance, if the name is
     'Rip Van Winkle', the function will output
-    {'lastname': 'van Winkle', 'first_names': 'R.'}. (Note that some
+    {'last_name': 'van Winkle', 'first_names': 'R.'}. (Note that some
     people write 'Van' instead of 'van'. This program ignores that.)
     The list of these words is ['van', 'von', 'da', 'de'].
     However, if the words are separated by a ',' (such as in BibTeX
     entries from Google Scholar), then we don't do this processing. For
     instance, if the name is 'Van Winkle, Rip', then the output will be
-    {'lastname': 'Van Winkle', 'first_names': 'R.'}. Aargh!!
+    {'last_name': 'Van Winkle', 'first_names': 'R.'}. Aargh!!
 
     This program doesn't handle any special cases while shortening the
     first names---for some names, the proper initials are different
@@ -254,7 +255,20 @@ def process_bibtex_into_reference_list(bibtex_filename):
         raw_bib_type = bib_list[i]
         raw_bib_info = bib_list[i+1]
 
-        bib_dict = dict()
+        bib_dict = dict({
+            'author_string': None, # all the authors in a single string
+            'author_list': None, # list of authors
+            'duplicate': False, # whether this is a duplicate entry
+            'key': None, # key for LaTeX referencing
+            'possible_duplicate': False, # for possible duplicates
+            'raw_data': None, # the raw BibTeX entry
+            'title': None,
+            'type': None, # such as 'article', 'book', 'misc', etc.
+            'venue': None, # venue of publication
+            'year': None,
+            'year_index': '' # for having (Feynman, 1960a, 1960b, 1960c)
+        })
+        
         bib_dict['raw_data'] = raw_bib_type + raw_bib_info
         bib_dict['type'] = process_bibliography_type(raw_bib_type)
         bib_dict['author_list'] = process_author_list(raw_bib_info)
@@ -263,9 +277,113 @@ def process_bibtex_into_reference_list(bibtex_filename):
         bib_dict['venue'] = process_venue_name(bib_dict['type'],
                                                raw_bib_info)
         reference_list.append(bib_dict)
-        pdb.set_trace()
 
     return reference_list
+
+def sort_and_create_keys_for_references(reference_list):
+    #-----------------------------------------------------------------
+    # concatenate the authors into a single string
+    #-----------------------------------------------------------------
+    for reference in reference_list:
+        author_string = ''
+        for authors in reference['author_list']:
+            author_string += '{} {}, '.format(authors['last_name'],
+                                             authors['first_names'])
+        author_string = author_string[:-2]
+        if author_string[-1] != '.':
+            author_string += '.'
+            
+        reference['author_string'] = author_string
+
+    #-----------------------------------------------------------------
+    # sort the references using the authors list, breaking ties using
+    # the year of publication, and then the title
+    #-----------------------------------------------------------------
+    reference_list.sort(key=lambda reference: (reference['author_string'],
+                                               int(reference['year']),
+                                               reference['title']))
+
+    #-----------------------------------------------------------------
+    # check for any duplicate references
+    #-----------------------------------------------------------------
+    for i in range(len(reference_list) - 1):
+        ref1 = reference_list[i]
+        ref2 = reference_list[i+1]
+        if ref1['author_string'].lower() == ref2['author_string'].lower()\
+           and ref1['year'] == ref2['year']:
+            
+            if ref1['title'] == ref2['title']:
+                warnings.warn('\nDuplicate entries found!\n{}\n{}'.format(
+                    ref1['raw_data'], ref2['raw_data']))
+                ref2['duplicate'] = True
+            else:
+                ref2['possible_duplicate'] = True
+                warnings.warn('Possibly duplicate entries!'\
+                              '\n{}\n{}'.format(ref1['raw_data'],
+                                                ref2['raw_data']))
+
+    #-----------------------------------------------------------------
+    # create LaTeX reference keys for the non-duplicate entries
+    # - single author: "<last_name><year>"
+    # - two authors  : "<last_name1>_<last_name2><year>"
+    # - three or more: "<last_name1>_etal<year>"
+    #-----------------------------------------------------------------
+    for reference in reference_list:
+        num_authors = len(reference['author_list'])
+        if num_authors == 0:
+            raise ValueError('The following reference has zero authors'\
+                             '\n{}'.format(reference['raw_data']))
+        if num_authors == 1:
+            key_string = '{}{}'.format(
+                reference['author_list'][0]['last_name'],
+                reference['year'])
+        elif num_authors == 2:
+            key_string = '{}_{}{}'.format(
+                reference['author_list'][0]['last_name'],
+                reference['author_list'][1]['last_name'],
+                reference['year'])
+        else:
+            key_string = '{}_etal{}'.format(
+                reference['author_list'][0]['last_name'],
+                reference['year'])
+        # remove any spaces and make everything lower case
+        reference['key'] = key_string.replace(' ', '').lower() 
+
+    #-----------------------------------------------------------------
+    # if two references have the same key, then add year index, i.e.
+    # to have something like (Feynman, 1960a, 1960b, 1960c)
+    #-----------------------------------------------------------------
+    letters = 'abcdefghijklmnopqrstuvwxyz'
+    year_index_integer = 1
+    for i in range(len(reference_list) - 1):
+        ref1 = reference_list[i]
+        ref2 = reference_list[i+1]
+
+        if year_index_integer > 26:
+            raise ValueError('Year index went beyond z! Please modify'\
+                             ' the code before proceeding.')
+
+        if not ref2['duplicate'] and ref1['key'] == ref2['key']:
+            ref1['year_index'] = letters[year_index_integer]
+            ref2['year_index'] = letters[year_index_integer + 1]
+            year_index_integer += 1
+        else:
+            year_index_integer = 1
+        
+    for reference in reference_list:
+        reference['key'] += reference['year_index']
+    
+    return reference_list
+
+def layout_latex_references(reference_list):
+    for reference in reference_list:
+        if not reference['duplicate']:
+            print('{} ({}{}). {}. {}.\n'.format(
+                reference['author_string'],
+                reference['year'],
+                reference['year_index'],
+                reference['title'],
+                reference['venue']))
 
 # if bib_dict['type'] in bib_types_list['paper_like']:
 #     pass
