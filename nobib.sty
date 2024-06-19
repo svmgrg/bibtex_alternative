@@ -1,81 +1,208 @@
-\ProvidesExplPackage{nobib}{June 14, 2024}{0.1}{Package for simplifying referencing citations.} % see latexshort.pdf (Section 7.1.5)
+\ProvidesExplPackage{nobib}{June 14, 2024}{0.1}{%
+  Package for simplifying citing references.} % see latexshort.pdf (Section 7.1.5)
 
-\NewDocumentCommand{\create_nobib_cite_command}{mmm}{
-  % #1: the reference key which also serves as the function name
-  % #2: the author names
-  % #3: the year of publication
+%% \NewDocumentCommand{\nobibCiteCommand}{mmm}{
+%%   % #1: the reference key which also serves as the function name
+%%   % #2: the author names
+%%   % #3: the year of publication
 
-  % create the integer counter
-  \int_new:N \l_nobib_#1_counter_int
-  \int_set:Nn \l__nobib_#1_counter_int {0}
+%%   \int_new:N \l_nobib_counter_int
+%%   \int_new:N \l_nobib_countera_int
+%%   \int_set:Nn \l_nobib_counter_int {-10}
+%%   This~text~is~ {\tiny \int_use:N \l_nobib_counter_int } ~ \cs_meaning:N \l_nobib_counter_int ~ \cs_meaning:N \l_nobib_countera_int. 
 
-  % create a list of labels
-  \tl_new:N \l_nobib_#1_labels_tl
-  
-  \NewDocumentCommand{\cs:w #1 \cs_end:}{so}{
-    \IfBooleanTF{##1}{ % starred version: 
-      % print the citation as <author> (<year>)
-      \hyperlink{#1}{#2~(#3)} 
-    } { % unstarred version: 
-      \IfValueTF {##2} {
-        \if:w {##2 = a} {
-          % print just the author name <author>   
-          \hyperlink{#1}{#2}
-        } \else {
-          if:w {##2 = y} {
-            % print just the year of publication <year>
-            \hyperlink{#1}{#3}
-          } \else {
-            % print something weird 
-            \texttt{\\\\did not specify a proper argument
-              ('a' or 'y') while citing a reference}
-          } \fi:
-        } \fi:              
-      } {
-        % print the citation as <author>, <year>
-        \hyperlink{#1}{#2,~#3}
-      }
-    }
-    \int_incr:N \l_nobib_#1_counter_int
-    \tl_put_right:Nn \l_nobib_#1_labels_tl {
-      #1_label_ \int_use:N \l_nobib_#1_counter_int}
-    \label{#1_label_ \int_use:N \l_#1_counter}
-  } % of the nested NewDocumentCommand
+%%   %% \exp_after:wN \int_new:N \cs:w \l_nobib_#1_counter_int \cs_end:
+
+
+%%   % create the integer counter
+%%   %% \exp_after:wN \int_new:N \cs:w \l_nobib_#1_counter_int \cs_end:
+%%   %% \int_set:Nn \l__nobib_#1_counter_int {0}
+
+%%   %% This text is \int_use:N \l_nobib_#1_counter_int .
+
+%% }
+
+% Can I created a ``linked'' property list here? How?
+\prop_new:N \l_nobib_author_prop
+\prop_new:N \l_nobib_year_prop
+\prop_new:N \l_nobib_labels_prop
+
+%% \prop_put:Nnn \l_nobib_author_tl {bubeck2019} {Bubeck}
+%% \prop_put:Nnn \l_nobib_year_tl {bubeck2019} {2019}
+
+%% \tl_clear:N \l_tempa_tl
+%% \tl_put_right:Nn \l_tempa_tl {{#2}}
+%% \tl_put_right:Nn \l_tempa_tl {{#3}}
+%% item1:
+%% \tl_item:nn {\l_tempa_tl} {1}|~
+%% item2:
+%% \tl_item:nn {\l_tempa_tl} {2}|~
+
+\NewDocumentCommand{\nobibReferenceEntry}{mmmm}{
+  \prop_put:Nnn \l_nobib_author_prop {#1} {#2}
+  \prop_put:Nnn \l_nobib_year_prop {#1} {#3}
 }
 
-\NewDocumentCommand{\create_nobib_reference_entry}{mm}{
-  % #1: the reference key
-  % #2: the reference text that appears in the .tex document
-  \int_compare:nNnTF {\l_nobib_#1_counter_int} > {0} {
-    % print the reference text
-    \hypertarget{#1}{#2}
+%% \NewDocumentCommand{\nobibTest}{m}{
+%%   \prop_get:NnN \l_nobib_author_tl {#1} \l_tempa_tl
+%%   \tl_item:nn {\l_tempa_tl} {1}
+%% }
 
-    \int_compare:nNnTF {\l_nobib_#1_counter_int} = {1} {
-      % the reference has been cited exactly once
-      \seq_pop_left:NN \l_nobib_#1_labels_tl \l_tempa_tl 
-      \small{(Cited on page \pageref{\tl_use:N \l_tempa_tl}.)}
-    } {
-      \int_compare:nNnTF {\l_nobib_#1_counter_int} = {2} {
-        % the reference has been cited twice
-        \seq_pop_left:NN \l_nobib_#1_labels_tl \l_tempa_tl
-        \seq_pop_left:NN \l_nobib_#1_labels_tl \l_tempb_tl 
-        \small{(Cited on pages \pageref{\tl_use:N \l_tempa_tl}
-          and \pageref{\tl_use:N \l_tempb_tl}.)}
+\RenewDocumentCommand{\cite}{som}{
+  \prop_get:NnNTF \l_nobib_author_prop {#3} \l_tempa_tl {  
+    \prop_get:NnN \l_nobib_year_prop {#3} \l_tempb_tl
+    \IfBooleanTF {#1} {
+      % starred version:       
+      \IfValueTF {#2} {
+        \color_group_begin: \color_select:n {red}
+        \par------------------------------------------?
+        ?------------------------------------------\par
+        Error!~Gave~an~optional~argument~with~the~starred~version~while~
+        citing~the~reference~``\texttt{#3}''.
+        \par------------------------------------------?
+        ?------------------------------------------\par
+        \color_group_end:
       } {
-        % the reference has been cited three or more times
-        \small{(Cited on pages }
-        \int_set:Nn \l_tempa_int {\l_nobib_#1_counter_int}
-        \int_do_while:nNnn {\l_tempa_int} > {1} {
-          % repeat this for all but the last reference
-          \seq_pop_left:NN \l_nobib_#1_labels_tl \l_tempa_tl
-          \small{\pageref{\tl_use:N \l_tempa_tl}, }
-          \int_decr:N \l_tempa_int
-        }
-        \seq_pop_left:NN \l_nobib_#1_labels_tl \l_tempa_tl
-        \small{and \pageref{\tl_use:N \l_tempa_tl}.)}
+        % print the citation as <author> (<year>)
+        \tl_use:N \l_tempa_tl \c_space_token ( \tl_use:N \l_tempb_tl )
+      }
+    } {% unstarred version: 
+      \IfValueTF {#2} {
+        \token_if_eq_meaning:NNTF #2 a {
+          % print just the author name <author>   
+          \tl_use:N \l_tempa_tl
+        } {
+          \token_if_eq_meaning:NNTF #2 y {
+            % print just the year of publication <year>
+            \tl_use:N \l_tempb_tl
+          } {
+            \color_group_begin: \color_select:n {red}
+            \par------------------------------------------?
+            ?------------------------------------------\par
+            Error!~Did~not~specify~the~proper~argument~(`a'~or~`y')~
+            while~citing~the~reference~``\texttt{#3}''.
+            \par------------------------------------------?
+            ?------------------------------------------\par
+            \color_group_end: \mode_leave_vertical:
+          }
+        }              
+      } {
+        % print the citation as <author>, <year>
+        \tl_use:N \l_tempa_tl , \c_space_token \tl_use:N \l_tempb_tl
       }
     }
   } {
-    % if the reference is not cited even once in the paper, do not include it
-  } 
+    \color_group_begin: \color_select:n {red}
+    \par------------------------------------------?
+    ?------------------------------------------\par
+    Error!~The~citation~key~``\texttt{#3}''~does~not~exist!~Please~add~
+    it~using~the~``\texttt{\textbackslash nobibReferenceEntry}''~command.
+    \par------------------------------------------?
+    ?------------------------------------------\par
+    \color_group_end:
+  }
 }
+
+%% \NewDocumentCommand{\cy}{so}{
+%%       \IfBooleanTF{##1}{ % starred version: 
+%%       % print the citation as <author> (<year>)
+%%       \hyperlink{#1}{#2~(#3)} 
+%%     } { % unstarred version: 
+%%       \IfValueTF {##2} {
+%%         \if:w {##2 = a} {
+%%           % print just the author name <author>   
+%%           \hyperlink{#1}{#2}
+%%         } \else {
+%%           if:w {##2 = y} {
+%%             % print just the year of publication <year>
+%%             \hyperlink{#1}{#3}
+%%           } \else {
+%%             % print something weird 
+%%             \texttt{\\\\did not specify a proper argument
+%%               ('a' or 'y') while citing a reference}
+%%           } \fi:
+%%         } \fi:              
+%%       } {
+%%         % print the citation as <author>, <year>
+%%         \hyperlink{#1}{#2,~#3}
+%%       }
+%%     }
+%%     \int_incr:N \l_nobib_#1_counter_int
+%%     \tl_put_right:Nn \l_nobib_#1_labels_tl {
+%%       #1_label_ \int_use:N \l_nobib_#1_counter_int}
+%%     \label{#1_label_ \int_use:N \l_#1_counter}
+%% } % of the nested NewDocumentCommand
+
+%%   % create a list of labels
+%%   \tl_new:N \l_nobib_#1_labels_tl
+  
+%%   \NewDocumentCommand{\cs:w #1 \cs_end:}{so}{
+%%     \IfBooleanTF{##1}{ % starred version: 
+%%       % print the citation as <author> (<year>)
+%%       \hyperlink{#1}{#2~(#3)} 
+%%     } { % unstarred version: 
+%%       \IfValueTF {##2} {
+%%         \if:w {##2 = a} {
+%%           % print just the author name <author>   
+%%           \hyperlink{#1}{#2}
+%%         } \else {
+%%           if:w {##2 = y} {
+%%             % print just the year of publication <year>
+%%             \hyperlink{#1}{#3}
+%%           } \else {
+%%             % print something weird 
+%%             \texttt{\\\\did not specify a proper argument
+%%               ('a' or 'y') while citing a reference}
+%%           } \fi:
+%%         } \fi:              
+%%       } {
+%%         % print the citation as <author>, <year>
+%%         \hyperlink{#1}{#2,~#3}
+%%       }
+%%     }
+%%     \int_incr:N \l_nobib_#1_counter_int
+%%     \tl_put_right:Nn \l_nobib_#1_labels_tl {
+%%       #1_label_ \int_use:N \l_nobib_#1_counter_int}
+%%     \label{#1_label_ \int_use:N \l_#1_counter}
+%%   } % of the nested NewDocumentCommand
+%% }
+
+%% \NewDocumentCommand{\nobibReferenceEntry}{mm}{
+%%   % #1: the reference key
+%%   % #2: the reference text that appears in the .tex document
+%%   \int_compare:nNnTF {\l_nobib_#1_counter_int} > {0} {
+%%     % print the reference text
+%%     \hypertarget{#1}{#2}
+
+%%     \int_compare:nNnTF {\l_nobib_#1_counter_int} = {1} {
+%%       % the reference has been cited exactly once
+%%       \seq_pop_left:NN \l_nobib_#1_labels_tl \l_tempa_tl 
+%%       \small{(Cited on page \pageref{\tl_use:N \l_tempa_tl}.)}
+%%     } {
+%%       \int_compare:nNnTF {\l_nobib_#1_counter_int} = {2} {
+%%         % the reference has been cited twice
+%%         \seq_pop_left:NN \l_nobib_#1_labels_tl \l_tempa_tl
+%%         \seq_pop_left:NN \l_nobib_#1_labels_tl \l_tempb_tl 
+%%         \small{(Cited on pages \pageref{\tl_use:N \l_tempa_tl}
+%%           and \pageref{\tl_use:N \l_tempb_tl}.)}
+
+%% } {
+%%         % the reference has been cited three or more times
+%%         \small{(Cited on pages }
+%%         \int_set:Nn \l_tempa_int {\l_nobib_#1_counter_int}
+%%         \int_do_while:nNnn {\l_tempa_int} > {1} {
+%%           % repeat this for all but the last reference
+%%           \seq_pop_left:NN \l_nobib_#1_labels_tl \l_tempa_tl
+%%           \small{\pageref{\tl_use:N \l_tempa_tl}, }
+%%           \int_decr:N \l_tempa_int
+%%         }
+%%         % the last reference
+%%         \seq_pop_left:NN \l_nobib_#1_labels_tl \l_tempa_tl
+%%         \small{and \pageref{\tl_use:N \l_tempa_tl}.)}
+%%       }
+%%     }
+%%   } {
+%%     % if the reference is not cited even once in the paper, do not include it
+%%   } 
+%% }
+
