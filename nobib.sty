@@ -44,6 +44,8 @@
   %% #3: the year of publication
   %% #4: actual reference text
 
+  check if the key already exists in the list. If so, raise some error!!!
+  
   % store the author and year information in the property list
   \prop_put:Nnn \l_nobib_info_prop  {#1} {{#2} {#3} {#4}}
 
@@ -182,9 +184,10 @@
       \int_set:Nn \l_tmpa_int {0}
     }
     \int_incr:N \l_tmpa_int
-    \tl_put_right:Nn \l_tmpa_tl {{#3 - \int_use:N \l_tmpa_int}}
+    % need to use \exp_args:NNe since \tl_put_right:Nn is not defined
+    \exp_args:NNe \tl_put_right:Nn \l_tmpa_tl {{#3 - \int_use:N \l_tmpa_int}}
     \prop_put:NnV \l_nobib_labels_prop {#3} \l_tmpa_tl
-    
+
     % create the label for backreference
     \label{#3 - \int_use:N \l_tmpa_int} 
   } {
