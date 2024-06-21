@@ -18,19 +18,34 @@
 % function for creating the nobib references database
 %=============================================================
 \NewDocumentCommand{\nobibReferenceEntry}{mmmm}{
+  \par {\bf Fix~the~usepackage~requirepackage~hyperref~thing.~Also~the~backlinks~in~the~page~numbers~don't~work!!!!~Aaargh!!!!!~And~what~is~phantomsection~while~using~the~label~command???~AAAARGHHH!}
+
   %% #1: the reference key which also serves as the function name
   %% #2: the author names
   %% #3: the year of publication
   %% #4: actual reference text
+  \prop_get:NnNTF \l_nobib_info_prop {#1} \l_tmpa_tl {
+    % if the key already exists in the property list, raise error
+    \color_group_begin: \color_select:n {red}
+    \par===================??===================\par
+    Error!~The~key~``\texttt{#1}''~has~been~already~
+    defined.~Consider~using~a~different~key~name.
+    \par-------------------------------------------
+    -------------------------------------------\par
+    {\bf Previous~entry:}~\tl_item:Nn \l_tmpa_tl {3}
+    \par-------------------------------------------
+    -------------------------------------------\par
+    {\bf Current~entry:}~#4
+    \par===================??===================\par
+    \color_group_end:
+  } {
+    % store the author and year information in the property list
+    \prop_put:Nnn \l_nobib_info_prop  {#1} {{#2} {#3} {#4}}
+    \prop_put:Nnn \l_nobib_label_count_prop {#1} {0}
 
-  check if the key already exists in the list. If so, raise some error!!!
-  
-  % store the author and year information in the property list
-  \prop_put:Nnn \l_nobib_info_prop  {#1} {{#2} {#3} {#4}}
-  \prop_put:Nnn \l_nobib_label_count_prop {#1} {0}
-
-  % store the key in the token list for generating the bibliography later
-  \tl_put_right:Nn \l_nobib_keys_tl {{#1}}
+    % store the key in the token list for generating the bibliography later
+    \tl_put_right:Nn \l_nobib_keys_tl {{#1}}
+  }
 }
 
 %=============================================================
@@ -96,7 +111,7 @@
       \prop_put:NnV \l_nobib_label_count_prop {#3} \l_tmpa_tl
 
       % create the label for backreference
-      \label{#3 - \int_use:N \l_tmpa_int}
+      \phantomsection \label{#3 - \int_use:N \l_tmpa_int}
   } {
     % ERROR! The citation key does not exist.
     \color_group_begin: \color_select:n {red}
@@ -174,16 +189,15 @@
         } {
           % this particular reference has not been cited even once
           \color_group_begin: \color_select:n {red}
-          \par------------------------------------------?
-          ?------------------------------------------\par
-          Error!~The~citation~key~``\texttt{\tl_item:Nn \l_tmpa_tl {1}}''~
+          \par===================??===================\par
+          Error!~The~citation~key~``\texttt{\tl_use:N \l_nobib_key_tl}''~
           has~not~been~cited~even~once~in~the~text.~Consider~removing~
           this~entry!
-          \par
+          \par-------------------------------------------
+          -------------------------------------------\par
           % put the actual reference text in the LaTeX document
           \tl_item:Nn \l_tmpa_tl {3}
-          \par------------------------------------------?
-          ?------------------------------------------\par
+          \par===================??===================\par
           \color_group_end:
         }
         \int_incr:N \l_tmpb_int % increment the counter for the outer while loop
