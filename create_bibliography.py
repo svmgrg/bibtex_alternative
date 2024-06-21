@@ -47,3 +47,7 @@ layout_latex_references(reference_list)
 # processed text entry
 # <or say repeated, hence ignored
 #=================================
+
+
+# fix the von der Ohe issue, \'Emilie
+# for possible duplicates, have similar things as year, title, authors, venue, and keep a count

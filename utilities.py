@@ -48,12 +48,13 @@ def find_bibliography_type(raw_bib_type):
     bib_type = re.findall(r'[a-z]+', raw_bib_type)[0]
     if bib_type not in bib_entry_types:
         raise ValueError(
-            'Unknown bibliography entry type: {}'\
+            '\n{}\nUnknown bibliography entry type: {}\n{}'\
             '\n(Please add it to the source code in the dictionary'\
-            ' "bib_entry_types" to proceed.)'.format(bib_dict['type']))
+            '\n"bib_entry_types" to proceed.)\n{}'.format(
+                '=' * 64, bib_type, '-' * 64, '=' * 64))
     return bib_type
 
-def find_author_list(raw_bib_info):
+def find_author_list(bib_dict):
     '''
     Input: a string containing the individual bibtex entry
     Output: list of strings, each containing the author names
@@ -97,12 +98,25 @@ def find_author_list(raw_bib_info):
     2. In certain cases, the behavior is even worse: for instance, if the
     input name were "\'Emeline Pierre", the program would output
     "Pierre E." instead of "Pierre \'E.".
+
+    NO!!! Rather, it will output '\'
+
+    Also, what happens with Spencer von der Ohe? Aargh!
+
+    
     3. Some people might shorten names like "McDonald" to "McD.", but
     this program will output "M.".
     
     If you care about these issues, please do a manual check!
     '''
-    raw_text = re.findall(r'author\s*=\s*{[\s\S]+}', raw_bib_info)[0]
+    try:
+        raw_text = re.findall(r'author\s*=\s*{[\s\S]+}',
+                              bib_dict['raw_data'])[0]
+    except:
+        raise ValueError(
+            '\n{}\nBibliography entry has some problems with the author'\
+            ' list!\n{}\n{}{}'.format(
+                '=' * 64, '-' * 64, bib_dict['raw_data'], '=' * 64))
     parenthetical_text = extract_text_in_braces(raw_text)
     
     processed_author_list = []
@@ -129,7 +143,7 @@ def find_author_list(raw_bib_info):
                                       'first_names': first_names})
     return processed_author_list
 
-def find_year(raw_bib_info):
+def find_year(bib_dict):
     '''
     Input: a string containing the individual bibtex entry
     Output: a string containing the year of publication
@@ -138,23 +152,43 @@ def find_year(raw_bib_info):
     This function strips any extraneuous information; for instance, if
     the BibTeX entry contains "2023, July", the outupt is just "2023".
     '''
-    raw_text = re.findall(r'year\s*=\s*{[\s\S]+}', raw_bib_info)[0]
+    try:
+        raw_text = re.findall(r'year\s*=\s*{[\s\S]+}',
+                              bib_dict['raw_data'])[0]
+    except:
+        raise ValueError(
+            '\n{}\nBibliography entry has some problems with the'\
+            ' publication year!\n{}\n{}{}'.format(
+                '=' * 64, '-' * 64, bib_dict['raw_data'], '=' * 64))
     parenthetical_text = extract_text_in_braces(raw_text)
-    year = re.findall(r'[0-9]+', parenthetical_text)[0]
-    
+    re_out = re.findall(r'[0-9]+', parenthetical_text)
+    if len(re_out) != 1:
+        raise ValueError(
+            '\n{}\nBibliography entry has some problems with the'\
+            ' publication year!\n{}\n{}{}'.format(
+                '=' * 64, '-' * 64, bib_dict['raw_data'], '=' * 64))
+    year = re_out[0]
+
     return year
 
-def find_title(raw_bib_info):
+def find_title(bib_dict):
     '''
     Input: a string containing the individual bibtex entry
     Output: a string containing BibTeX entry's title (verbatim).
     '''
-    raw_text = re.findall(r'title\s*=\s*{[\s\S]+}', raw_bib_info)[0]
+    try:
+        raw_text = re.findall(r'title\s*=\s*{[\s\S]+}',
+                              bib_dict['raw_data'])[0]
+    except:
+        raise ValueError(
+            '\n{}\nBibliography entry has some problems with the title!'
+            '\n{}\n{}{}'.format(
+                '=' * 64, '-' * 64, bib_dict['raw_data'], '=' * 64))
     parenthetical_text = extract_text_in_braces(raw_text)
-    
+
     return parenthetical_text
 
-def find_venue(bib_dict_type, raw_bib_info):
+def find_venue(bib_dict):
     '''
     Input: a string containing the individual bibtex entry
     Output: a string containing the publication venue
@@ -181,23 +215,24 @@ def find_venue(bib_dict_type, raw_bib_info):
     does not do any processing and outputs the venue name verbatim,
     along with a message.
     '''
-    FLAG_ARXIV = True if 'arxiv' in raw_bib_info.lower() else False
-
+    FLAG_ARXIV = True if 'arxiv' in bib_dict['raw_data'].lower() \
+        else False
     venue_string = 'eprint' if FLAG_ARXIV\
-        else bib_entry_types[bib_dict_type]['venue']
+        else bib_entry_types[bib_dict['type']]['venue']
     regex_venue_style = venue_string + r'\s*=\s*{[\s\S]+}' 
-
     try:
-        raw_text = re.findall(regex_venue_style, raw_bib_info)[0]
+        raw_text = re.findall(regex_venue_style, bib_dict['raw_data'])[0]
     except:
         raise ValueError('Unable to find the publication name'\
-                         '\n{}'.format(raw_bib_info))
+                         '\n{}'.format(bib_dict['raw_data']))
     parenthetical_text = extract_text_in_braces(raw_text)
 
+    fix this thing!!! also see if bibtex fields are empty, then a problem!
+    
     if 'workshop' in parenthetical_text:
         warnings.warn(
             'The publication venue is a workshop. Returning the venue'\
-            ' name verbatim:\n{}'.format(raw_bib_info))
+            ' name verbatim:\n{}'.format(bib_dict['raw_data']))
         processed_venue_name = parenthetical_text
     elif FLAG_ARXIV:
         processed_venue_name = 'arXiv: ' + parenthetical_text
@@ -217,7 +252,7 @@ def find_venue(bib_dict_type, raw_bib_info):
                 '\n{}\nUnknown publication venue: {}'
                 '\nPlease add this to the CSV file.\n{}{}\n'.format(
                     '=' * 64, parenthetical_text, '-' * 64,
-                    raw_bib_info, '=' * 64))
+                    bib_dict['raw_data'], '=' * 64))
     return processed_venue_name
 
 #--------------------------------------------------------------------
@@ -265,10 +300,10 @@ def process_bibtex_into_reference_list(bibtex_filename):
         
         bib_dict['raw_data'] = raw_bib_type + raw_bib_info
         bib_dict['type'] = find_bibliography_type(raw_bib_type)
-        bib_dict['author_list'] = find_author_list(raw_bib_info)
-        bib_dict['year'] = find_year(raw_bib_info)
-        bib_dict['title'] = find_title(raw_bib_info)
-        bib_dict['venue'] = find_venue(bib_dict['type'], raw_bib_info)
+        bib_dict['author_list'] = find_author_list(bib_dict)
+        bib_dict['year'] = find_year(bib_dict)
+        bib_dict['title'] = find_title(bib_dict)
+        bib_dict['venue'] = find_venue(bib_dict)
         reference_list.append(bib_dict)
 
     return reference_list
@@ -309,13 +344,13 @@ def sort_and_create_keys_for_references(reference_list):
                 print('{}\nWarning: Duplicate entries!\n{}'
                       '\n{}{}\n{}{}\n'.format('=' * 64, '-' * 64,
                                               ref1['raw_data'], '-' * 64,
-                                              ref2['raw_data'], '='*64))
+                                              ref2['raw_data'], '=' * 64))
                 ref2['duplicate'] = True
             else:
                 print('{}\nWarning: Possibly Duplicate entries!\n{}'
                       '\n{}{}\n{}{}\n'.format('=' * 64, '-' * 64,
                                               ref1['raw_data'], '-' * 64,
-                                              ref2['raw_data'], '='*64))
+                                              ref2['raw_data'], '=' * 64))
                 ref2['possible_duplicate'] = True
 
     #-----------------------------------------------------------------

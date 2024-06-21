@@ -1,4 +1,4 @@
-\ProvidesExplPackage{nobib}{June 14, 2024}{0.1}{%
+\ProvidesExplPackage{dumbib}{June 14, 2024}{0.1}{%
   Package for simplifying citing references.} % see latexshort.pdf (Section 7.1.5)
 
 \usepackage{hyperref}
@@ -6,29 +6,29 @@
 %=============================================================
 % variable declarations
 %=============================================================
-\int_new:N \l_nobib_tmpa_int
-\int_new:N \l_nobib_tmpb_int
-\tl_new:N \l_nobib_key_tl
+\int_new:N \l_dumbib_tmpa_int
+\int_new:N \l_dumbib_tmpb_int
+\tl_new:N \l_dumbib_key_tl
 % Can I created a ``linked'' property list here? How?
-\prop_new:N \l_nobib_info_prop
-\prop_new:N \l_nobib_label_count_prop
-\tl_new:N \l_nobib_keys_tl
+\prop_new:N \l_dumbib_info_prop
+\prop_new:N \l_dumbib_label_count_prop
+\tl_new:N \l_dumbib_keys_tl
 
 %=============================================================
-% function for creating the nobib references database
+% function for creating the dumbib references database
 %=============================================================
-\NewDocumentCommand{\nobibReferenceEntry}{mmmm}{
-  \par {\bf Fix~the~usepackage~requirepackage~hyperref~thing.~Also~the~backlinks~in~the~page~numbers~don't~work!!!!~Aaargh!!!!!~And~what~is~phantomsection~while~using~the~label~command???~AAAARGHHH!}
-
+\NewDocumentCommand{\dumbibReferenceEntry}{mmmm}{
+  \par {\bf Fix~the~usepackage~requirepackage~hyperref~thing.~Also~the~backlinks~in~the~page~numbers~don't~work!!!!~Aaargh!!!!!~And~what~is~phantomsection~while~using~the~label~command???~AAAARGHHH!~Need~to~add~a~backslash~after~the~et~al.~refernces.~Maybe~this~package~should~be~called~dumbib?~Also~fix~the~underscore~issue??
+  Replace the error messages with a better error interface? Maybe a single function???}
   %% #1: the reference key which also serves as the function name
   %% #2: the author names
   %% #3: the year of publication
   %% #4: actual reference text
-  \prop_get:NnNTF \l_nobib_info_prop {#1} \l_tmpa_tl {
+  \prop_get:NnNTF \l_dumbib_info_prop {#1} \l_tmpa_tl {
     % if the key already exists in the property list, raise error
     \color_group_begin: \color_select:n {red}
     \par===================??===================\par
-    Error!~The~key~``\texttt{#1}''~has~been~already~
+    Error!~The~key~``\texttt{\tl_to_str:n {#1}}''~has~been~already~
     defined.~Consider~using~a~different~key~name.
     \par-------------------------------------------
     -------------------------------------------\par
@@ -40,11 +40,11 @@
     \color_group_end:
   } {
     % store the author and year information in the property list
-    \prop_put:Nnn \l_nobib_info_prop  {#1} {{#2} {#3} {#4}}
-    \prop_put:Nnn \l_nobib_label_count_prop {#1} {0}
+    \prop_put:Nnn \l_dumbib_info_prop  {#1} {{#2} {#3} {#4}}
+    \prop_put:Nnn \l_dumbib_label_count_prop {#1} {0}
 
     % store the key in the token list for generating the bibliography later
-    \tl_put_right:Nn \l_nobib_keys_tl {{#1}}
+    \tl_put_right:Nn \l_dumbib_keys_tl {{#1}}
   }
 }
 
@@ -52,15 +52,15 @@
 % function for citing the references
 %=============================================================
 \RenewDocumentCommand{\cite}{som}{
-  \prop_get:NnNTF \l_nobib_info_prop {#3} \l_tmpa_tl {
+  \prop_get:NnNTF \l_dumbib_info_prop {#3} \l_tmpa_tl {
       \IfBooleanTF {#1} {
         % starred version:       
         \IfValueTF {#2} {
           \color_group_begin: \color_select:n {red}
           \par------------------------------------------?
           ?------------------------------------------\par
-          Error!~Gave~an~optional~argument~with~the~starred~version~while~
-          citing~the~reference~``\texttt{#3}''.
+          Error!~Gave~an~optional~argument~with~the~starred~version~
+          while~citing~the~reference~``\texttt{\tl_to_str:n {#3}}''.
           \par------------------------------------------?
           ?------------------------------------------\par
           \color_group_end:
@@ -86,7 +86,7 @@
               \par------------------------------------------?
               ?------------------------------------------\par
               Error!~Did~not~specify~the~proper~argument~(`a'~or~`y')~
-              while~citing~the~reference~``\texttt{#3}''.
+              while~citing~the~reference~``\texttt{\tl_to_str:n {#3}}''.
               \par------------------------------------------?
               ?------------------------------------------\par
               \color_group_end:
@@ -103,12 +103,15 @@
       %-------------------------------------------------------------
       % update the label count in the label count property list
       %-------------------------------------------------------------
-      \prop_get:NnN \l_nobib_label_count_prop {#3} \l_tmpa_tl
+      \prop_get:NnN \l_dumbib_label_count_prop {#3} \l_tmpa_tl
       % need to use \exp_args:NNe since \int_set:Ne is not defined
       \exp_args:NNe \int_set:Nn \l_tmpa_int {\l_tmpa_tl}
       \int_incr:N \l_tmpa_int
       \tl_set:Ne \l_tmpa_tl {\int_use:N \l_tmpa_int}
-      \prop_put:NnV \l_nobib_label_count_prop {#3} \l_tmpa_tl
+      \prop_put:NnV \l_dumbib_label_count_prop {#3} \l_tmpa_tl
+
+      \tl_show:N \l_tmpa_tl
+      \prop_show:N \l_dumbib_label_count_prop
 
       % create the label for backreference
       \phantomsection \label{#3 - \int_use:N \l_tmpa_int}
@@ -117,8 +120,9 @@
     \color_group_begin: \color_select:n {red}
     \par------------------------------------------?
     ?------------------------------------------\par
-    Error!~The~citation~key~``\texttt{#3}''~does~not~exist!~Please~add~
-    it~using~the~``\texttt{\textbackslash nobibReferenceEntry}''~command.
+    Error!~The~citation~key~``\texttt{\tl_to_str:n {#3}}''~does~not~
+    exist!~Please~add~it~using~the~
+    ``\texttt{\textbackslash dumbibReferenceEntry}''~command.
     \par------------------------------------------?
     ?------------------------------------------\par
     \color_group_end:
@@ -128,8 +132,8 @@
 %=============================================================
 % function for printing the bibliography at the end
 %=============================================================
-\NewDocumentCommand{\nobibCreateBibliography}{}{
-  \int_set:Nn \l_tmpa_int {\tl_count:N \l_nobib_keys_tl}
+\NewDocumentCommand{\dumbibCreateBibliography}{}{
+  \int_set:Nn \l_tmpa_int {\tl_count:N \l_dumbib_keys_tl}
   \int_compare:nNnTF {\l_tmpa_int} > {0} {
     \medskip
     \begin{list}{}{
@@ -144,45 +148,51 @@
       \item % create a new \item entry in the list environment
         %-------------------------------------------------------------
         % store the key name in and store the reference information
-        % from the \l_nobib_info_prop property list in \l_tmpa_tl
+        % from the \l_dumbib_info_prop property list in \l_tmpa_tl
         %-------------------------------------------------------------
-        \tl_set:Ne \l_nobib_key_tl {\tl_item:Nn \l_nobib_keys_tl {\l_tmpb_int}}
+        \tl_set:Ne \l_dumbib_key_tl {
+          \tl_item:Nn \l_dumbib_keys_tl {\l_tmpb_int}}
         % need the following complicated and weird expression because
         % (i)  \prop_get:NoN is not defined, and
         % (ii) \exp_args:NNoN is not defined
-        \exp_args:NNoo \prop_get:NnN \l_nobib_info_prop {\l_nobib_key_tl} {
-          \exp_not:N \l_tmpa_tl}
+        \exp_args:NNoo \prop_get:NnN \l_dumbib_info_prop {
+          \l_dumbib_key_tl} {\exp_not:N \l_tmpa_tl}
         %-------------------------------------------------------------
-        % get the label count in \l_nobib_tmpa_int
+        % get the label count in \l_dumbib_tmpa_int
         %-------------------------------------------------------------
-        \exp_args:NNoo \prop_get:NnN \l_nobib_label_count_prop {\l_nobib_key_tl} {
-          \exp_not:N \l_tmpb_tl}
+        \exp_args:NNoo \prop_get:NnN \l_dumbib_label_count_prop {
+          \l_dumbib_key_tl} {\exp_not:N \l_tmpb_tl}
         % need to use \exp_args:NNe since \int_set:Ne is not defined
-        \exp_args:NNe \int_set:Nn \l_nobib_tmpa_int {\l_tmpb_tl}
+        \exp_args:NNe \int_set:Nn \l_dumbib_tmpa_int {\l_tmpb_tl}
         
-        \int_compare:nNnTF {\l_nobib_tmpa_int} > {0} {
-          \hypertarget{\tl_use:N \l_nobib_key_tl}{
+        \int_compare:nNnTF {\l_dumbib_tmpa_int} > {0} {
+          \hypertarget{\tl_use:N \l_dumbib_key_tl}{
             % put the actual reference text in the LaTeX document
             \tl_item:Nn \l_tmpa_tl {3} ~
             %-------------------------------------------------------------
-            % add the backlinks to the pages where this reference was cited on
+            % add backlinks to the pages where this reference was cited on
             %-------------------------------------------------------------
-            \int_compare:nNnTF {\l_nobib_tmpa_int} = {1} {
-              {\tiny (cited~on~page~\pageref{\tl_use:N \l_nobib_key_tl- 1})}
+            \int_compare:nNnTF {\l_dumbib_tmpa_int} = {1} {
+              {\tiny (cited~on~page~
+                \pageref{\tl_use:N \l_dumbib_key_tl- 1})}
             } {
-              \int_compare:nNnTF {\l_nobib_tmpa_int} = {2} {
-                {\tiny (cited~on~pages~\pageref{\tl_use:N \l_nobib_key_tl - 1}~
-                  and~\pageref{\tl_use:N \l_nobib_key_tl - 2})}
+              \int_compare:nNnTF {\l_dumbib_tmpa_int} = {2} {
+                {\tiny (cited~on~pages~
+                  \pageref{\tl_use:N \l_dumbib_key_tl - 1}~and~
+                  \pageref{\tl_use:N \l_dumbib_key_tl - 2})}
               } {
-                {\tiny (cited~on~pages~\pageref{\tl_use:N \l_nobib_key_tl - 1},~}
-                \int_set:Nn \l_nobib_tmpb_int {2}
-                \int_do_while:nNnn {\l_nobib_tmpb_int} < {\l_nobib_tmpa_int} {
-                  {\tiny \pageref{\tl_use:N \l_nobib_key_tl -
-                      \int_use:N \l_nobib_tmpb_int},~}
-                  \int_incr:N \l_nobib_tmpb_int
-                }
-                    {\tiny and~ \pageref{\tl_use:N \l_nobib_key_tl -
-                        \int_use:N \l_nobib_tmpa_int})}
+                {\tiny (cited~on~pages~
+                  \pageref{\tl_use:N \l_dumbib_key_tl - 1},~}
+                \int_set:Nn \l_dumbib_tmpb_int {2}
+                \int_do_while:nNnn
+                    {\l_dumbib_tmpb_int} < {\l_dumbib_tmpa_int} {
+                      {\tiny \pageref{\tl_use:N \l_dumbib_key_tl -
+                          \int_use:N \l_dumbib_tmpb_int},~}
+                      \int_incr:N \l_dumbib_tmpb_int
+                    } {
+                      \tiny and~ \pageref{\tl_use:N \l_dumbib_key_tl -
+                        \int_use:N \l_dumbib_tmpa_int})
+                    }
               }
             }
           }
@@ -190,8 +200,9 @@
           % this particular reference has not been cited even once
           \color_group_begin: \color_select:n {red}
           \par===================??===================\par
-          Error!~The~citation~key~``\texttt{\tl_use:N \l_nobib_key_tl}''~
-          has~not~been~cited~even~once~in~the~text.~Consider~removing~
+          Error!~The~citation~key~
+          ``\texttt{\tl_to_str:N \l_dumbib_key_tl}''~
+          has~not~been~used~even~once~in~the~text.~Consider~removing~
           this~entry!
           \par-------------------------------------------
           -------------------------------------------\par
@@ -200,7 +211,7 @@
           \par===================??===================\par
           \color_group_end:
         }
-        \int_incr:N \l_tmpb_int % increment the counter for the outer while loop
+        \int_incr:N \l_tmpb_int % increment counter for outer while loop
       }    
     \end{list}
   } {
@@ -209,7 +220,7 @@
     \par------------------------------------------?
     ?------------------------------------------\par
     Error!~No~references~exist.~Please~add~references~
-    using~the~``\texttt{\textbackslash nobibReferenceEntry}''~command.
+    using~the~``\texttt{\textbackslash dumbibReferenceEntry}''~command.
     \par------------------------------------------?
     ?------------------------------------------\par
     \color_group_end:

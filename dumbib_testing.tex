@@ -1,0 +1,49 @@
+\documentclass[letter, 11pt]{article}
+\include{document_preamble.tex}
+\usepackage{dumbib}
+
+\title{\texttt{dumbib} testing}
+\author{Shivam Garg}
+\date{}
+
+\begin{document}
+\maketitle
+
+\dumbibReferenceEntry{bubeck2019}{Bubeck}{2019}{%
+  Bubeck S. (2019). Fake paper. \textit{Fake conference.}}
+
+\dumbibReferenceEntry{vanroy2024}{van Roy et al.}{2024}{%
+  van Roy B., Sutton R.S., Choi E. (2024). Another fake paper. \textit{Yet another fake conference.}}
+
+\dumbibReferenceEntry{vanroy2024}{van Roy}{2024}{%
+  van Roy B., Bubeck S. (2024). The best fake paper. \textit{The best fake conference.}}
+
+\dumbibReferenceEntry{vanroy_bubeck2024}{van Roy and Bubeck}{2024}{%
+  van Roy B., Bubeck S. (2024). The best fake paper. \textit{The best fake conference.}}
+
+\section{New chapter}
+These are some citations:
+\begin{itemize}
+\item \cite{vanroy2024}
+\item \cite*{vanroy2024}
+\item \cite[a]{vanroy2024}
+\item \cite[y]{vanroy2024}
+\end{itemize}
+
+\par\par\par Ok!
+\begin{itemize}
+\item \cite*[s]{vanroy_bubeck2024}
+\item \cite[v]{vanroy_bubeck2024}
+\item \cite[a]{vfanroy_bubeck2024}
+\end{itemize}
+
+\newpage
+\cite{bubeck2019}
+
+\newpage
+Hello hello, how are you Mr. Buffalo? Let's try to push van Roy off the line. Need more \cite[a]{vanroy2024}
+
+\section*{References}
+\dumbibCreateBibliography
+
+\end{document}

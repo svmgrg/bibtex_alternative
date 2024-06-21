@@ -47,7 +47,7 @@
 %% \usepackage{babel,csquotes,xpatch}
 %% \usepackage[backend=biber, style=authoryear-comp, giveninits=true]{biblatex}
 %% \DeclareNameAlias{author}{last-first} %% https://tex.stackexchange.com/questions/290103/get-last-name-first-in-biblatex-using-numeric-style
-\newcommand{\bib}{\hyperlink}
+\NewDocumentCommand{\bib}{}{\hyperlink}
 
 %% for showing the label keys in the document margins
 %% adapted from https://tex.stackexchange.com/questions/148579/tweak-showlabels-showkeys-wrap-the-label
@@ -68,7 +68,7 @@ rulewidth=0.5pt, bgcolor=black!5!white}]{normalfont}
 \declaretheorem[numberwithin=section, style=normalfont]{theorem, assumption}
 \declaretheorem[numberlike=theorem, style=normalfont]{lemma, proposition, example, corollary, definition, remark, observation}
 
-\newcommand{\fclrbx}[2]{\fcolorbox{#1!67!black}{#1!5!white}{#2}} %% https://tex.stackexchange.com/questions/446548/how-to-change-the-default-border-color-of-fbox
+\NewDocumentCommand{\fclrbx}{mm}{\fcolorbox{#1!67!black}{#1!5!white}{#2}} %% https://tex.stackexchange.com/questions/446548/how-to-change-the-default-border-color-of-fbox
 
 %% copied from /usr/local/texlive/2023/texmf-dist/tex/latex/amscls/amsthm.sty
 %% changed the \itshape in the original command to
@@ -86,12 +86,12 @@ rulewidth=0.5pt, bgcolor=black!5!white}]{normalfont}
 }
 \makeatother
 
-\newcommand{\union}{\cup}
-\newcommand{\intersect}{\cap}
-\newcommand{\Union}{\bigcup}
-\newcommand{\Intersect}{\bigcap}
+\DeclareMathOperator{\union}{\cup}
+\DeclareMathOperator{\intersect}{\cap}
+\DeclareMathOperator{\Union}{\bigcup}
+\DeclareMathOperator{\Intersect}{\bigcap}
 
-\newcommand{\eps}{\varepsilon} %% \newcommand{\vareps}{\varepsilon}
+\NewDocumentCommand{\eps}{}{\varepsilon} %% \NewDocumentCommand{\vareps}{\varepsilon}
 
 \DeclareMathOperator*{\linf}{\lim\inf}
 \DeclareMathOperator*{\lsup}{\lim\sup}
@@ -103,7 +103,7 @@ rulewidth=0.5pt, bgcolor=black!5!white}]{normalfont}
 
 \DeclareMathOperator{\prob}{\mathbb{P}}
 \DeclareMathOperator{\Cov}{\mathrm{Cov}}
-\DeclareMathOperator{\TTM}{\text{TTM}}
+\DeclareMathOperator{\TTM}{\textrm{TTM}}
 \DeclareMathOperator{\diag}{\mathrm{diag}}
 \DeclareMathOperator{\clip}{\mathrm{clip}}
 \DeclareMathOperator{\cond}{\mathrm{cond}}
@@ -285,4 +285,4 @@ rulewidth=0.5pt, bgcolor=black!5!white}]{normalfont}
 \DeclarePairedDelimiter{\group}{(}{)}
 \DeclarePairedDelimiter{\norm}{\|}{\|}
 
-\newcommand{\shivam}[1]{\textcolor{red}{(SG: #1)}}
+\NewDocumentCommand{\shivam}{m}{\textcolor{red}{(SG: #1)}}
