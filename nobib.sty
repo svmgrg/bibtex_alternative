@@ -1,43 +1,22 @@
 \ProvidesExplPackage{nobib}{June 14, 2024}{0.1}{%
   Package for simplifying citing references.} % see latexshort.pdf (Section 7.1.5)
 
-%% \NewDocumentCommand{\nobibCiteCommand}{mmm}{
-%%   % #1: the reference key which also serves as the function name
-%%   % #2: the author names
-%%   % #3: the year of publication
+\usepackage{hyperref}
 
-%%   \int_new:N \l_nobib_counter_int
-%%   \int_new:N \l_nobib_countera_int
-%%   \int_set:Nn \l_nobib_counter_int {-10}
-%%   This~text~is~ {\tiny \int_use:N \l_nobib_counter_int } ~ \cs_meaning:N \l_nobib_counter_int ~ \cs_meaning:N \l_nobib_countera_int. 
-
-%%   %% \exp_after:wN \int_new:N \cs:w \l_nobib_#1_counter_int \cs_end:
-
-
-%%   % create the integer counter
-%%   %% \exp_after:wN \int_new:N \cs:w \l_nobib_#1_counter_int \cs_end:
-%%   %% \int_set:Nn \l__nobib_#1_counter_int {0}
-
-%%   %% This text is \int_use:N \l_nobib_#1_counter_int .
-
-%% }
-
+%=============================================================
+% variable declarations
+%=============================================================
+\int_new:N \l_nobib_tmpa_int
+\int_new:N \l_nobib_tmpb_int
+\tl_new:N \l_nobib_key_tl
 % Can I created a ``linked'' property list here? How?
 \prop_new:N \l_nobib_info_prop
-\prop_new:N \l_nobib_labels_prop
+\prop_new:N \l_nobib_label_count_prop
 \tl_new:N \l_nobib_keys_tl
 
-%% \prop_put:Nnn \l_nobib_author_tl {bubeck2019} {Bubeck}
-%% \prop_put:Nnn \l_nobib_year_tl {bubeck2019} {2019}
-
-%% \tl_clear:N \l_tmpa_tl
-%% \tl_put_right:Nn \l_tmpa_tl {{#2}}
-%% \tl_put_right:Nn \l_tmpa_tl {{#3}}
-%% item1:
-%% \tl_item:nn {\l_tmpa_tl} {1}|~
-%% item2:
-%% \tl_item:nn {\l_tmpa_tl} {2}|~
-
+%=============================================================
+% function for creating the nobib references database
+%=============================================================
 \NewDocumentCommand{\nobibReferenceEntry}{mmmm}{
   %% #1: the reference key which also serves as the function name
   %% #2: the author names
@@ -48,148 +27,76 @@
   
   % store the author and year information in the property list
   \prop_put:Nnn \l_nobib_info_prop  {#1} {{#2} {#3} {#4}}
+  \prop_put:Nnn \l_nobib_label_count_prop {#1} {0}
 
   % store the key in the token list for generating the bibliography later
   \tl_put_right:Nn \l_nobib_keys_tl {{#1}}
 }
 
-\NewDocumentCommand{\nobibCreateBibliography}{}{
-  \int_set:Nn \l_tmpa_int {\tl_count:N \l_nobib_keys_tl}
-  \int_compare:nNnTF {\l_tmpa_int} > {0} {
-    \medskip
-    \begin{list}{}{
-        \setlength{\topsep}{0pt}
-        \setlength{\leftmargin}{0.2in}
-        \setlength{\listparindent}{-0.2in}
-        \setlength{\itemindent}{-0.2in}
-        \setlength{\parsep}{\parskip}
-      }
-      \int_set:Nn \l_tmpb_int {1}
-      \int_do_while:nNnn {\l_tmpb_int} < {\l_tmpa_int + 1} {
-        
-      \item
-        \tl_set:Ne \l_tmpa_tl {\tl_item:Nn \l_nobib_keys_tl {\l_tmpb_int}}
-        % need the following complicated and weird expression because
-        % (i)  \prop_get:NoN is not defined, and
-        % (ii) \exp_args:NNoN is not defined
-        \exp_args:NNoo \prop_get:NnN \l_nobib_info_prop {\l_tmpa_tl} {
-          \exp_not:N \l_tmpb_tl}
-        \tl_item:Nn \l_tmpb_tl {3}
-        \exp_args:NNoo \prop_get:NnN \l_nobib_labels_prop {\l_tmpa_tl} {
-          \exp_not:N \l_tm_tl}
-        \tl_use:N \l_tm_tl
-        \prop_get:NnNTF \l_nobib_labels_prop {\l_tmpa_tl} \l_tmpa_tl {
-          \tl_use:N \l_tmpa_tl
-        } {blah
-        }
-        
-        \int_incr:N \l_tmpb_int
-        
-        
-        
-      }
-      
-    %% % put the actual reference text in the LaTeX document
-    %% \tl_clear:N \l_tmpa_tl
-    %% \prop_get:NnNTF \l_nobib_labels_prop {#3} \l_tmpa_tl {
-    %%   \int_set:Nn \l_tmpa_int {\tl_count:N \l_tmpa_tl}
-    %%   #4
-    %% } {
-    %%   % reference has not been cited even once
-    %%   \color_group_begin: \color_select:n {red}
-    %%   \par------------------------------------------?
-    %%   ?------------------------------------------\par
-    %%   Error!~The~citation~key~``\texttt{#1}''~has~not~been~cited~even~
-    %%   once~in~the~text.~Consider~removing~this~entry!
-    %%   \par
-    %%   #4
-    %%   \par------------------------------------------?
-    %%   ?------------------------------------------\par
-    %%   \color_group_end:
-    %% }
-    
-
-    \end{list}
-  } {
-    % ERROR! No references exist.
-    \color_group_begin: \color_select:n {red}
-    \par------------------------------------------?
-    ?------------------------------------------\par
-    Error!~No~references~exist.~Please~add~references~
-    using~the~``\texttt{\textbackslash nobibReferenceEntry}''~command.
-    \par------------------------------------------?
-    ?------------------------------------------\par
-    \color_group_end:
-  } 
-}
-
-%% \NewDocumentCommand{\nobibTest}{m}{
-%%   \prop_get:NnN \l_nobib_author_tl {#1} \l_tmpa_tl
-%%   \tl_item:nn {\l_tmpa_tl} {1}
-%% }
-
+%=============================================================
+% function for citing the references
+%=============================================================
 \RenewDocumentCommand{\cite}{som}{
-  \prop_get:NnNTF \l_nobib_info_prop {#3} \l_tmpa_tl {  
-    \IfBooleanTF {#1} {
-      % starred version:       
-      \IfValueTF {#2} {
-        \color_group_begin: \color_select:n {red}
-        \par------------------------------------------?
-        ?------------------------------------------\par
-        Error!~Gave~an~optional~argument~with~the~starred~version~while~
-        citing~the~reference~``\texttt{#3}''.
-        \par------------------------------------------?
-        ?------------------------------------------\par
-        \color_group_end:
-      } {
-        % print the citation as <author> (<year>)
-        \tl_item:Nn \l_tmpa_tl {1} \c_space_token
-        ( \tl_item:Nn \l_tmpa_tl {2} )
-      }
-    } {
-      % unstarred version: 
-      \IfValueTF {#2} {
-        \token_if_eq_meaning:NNTF #2 a {
-          % print just the author name <author>
-          \tl_item:Nn \l_tmpa_tl {1}
+  \prop_get:NnNTF \l_nobib_info_prop {#3} \l_tmpa_tl {
+      \IfBooleanTF {#1} {
+        % starred version:       
+        \IfValueTF {#2} {
+          \color_group_begin: \color_select:n {red}
+          \par------------------------------------------?
+          ?------------------------------------------\par
+          Error!~Gave~an~optional~argument~with~the~starred~version~while~
+          citing~the~reference~``\texttt{#3}''.
+          \par------------------------------------------?
+          ?------------------------------------------\par
+          \color_group_end:
         } {
-          \token_if_eq_meaning:NNTF #2 y {
-            % print just the year of publication <year>
-            \tl_item:Nn \l_tmpa_tl {2}
-          } {
-            \color_group_begin: \color_select:n {red}
-            \par------------------------------------------?
-            ?------------------------------------------\par
-            Error!~Did~not~specify~the~proper~argument~(`a'~or~`y')~
-            while~citing~the~reference~``\texttt{#3}''.
-            \par------------------------------------------?
-            ?------------------------------------------\par
-            \color_group_end:
+          % print the citation as <author> (<year>)
+          \hyperlink{#3}{
+            \tl_item:Nn \l_tmpa_tl {1} \c_space_token
+            ( \tl_item:Nn \l_tmpa_tl {2} )
           }
-        }              
+        }
       } {
-        % print the citation as <author>, <year>
-        \tl_item:Nn \l_tmpa_tl {1} , \c_space_token
-        \tl_item:Nn \l_tmpa_tl {2}
+        % unstarred version: 
+        \IfValueTF {#2} {
+          \token_if_eq_meaning:NNTF #2 a {
+            % print just the author name <author>
+            \hyperlink{#3}{\tl_item:Nn \l_tmpa_tl {1}}
+          } {
+            \token_if_eq_meaning:NNTF #2 y {
+              % print just the year of publication <year>
+              \hyperlink{#3}{\tl_item:Nn \l_tmpa_tl {2}}
+            } {
+              \color_group_begin: \color_select:n {red}
+              \par------------------------------------------?
+              ?------------------------------------------\par
+              Error!~Did~not~specify~the~proper~argument~(`a'~or~`y')~
+              while~citing~the~reference~``\texttt{#3}''.
+              \par------------------------------------------?
+              ?------------------------------------------\par
+              \color_group_end:
+            }
+          }              
+        } {
+          % print the citation as <author>, <year>
+          \hyperlink{#3}{
+            \tl_item:Nn \l_tmpa_tl {1} , \c_space_token
+            \tl_item:Nn \l_tmpa_tl {2}
+          }
+        }
       }
-    }
-    
-    %-------------------------------------------------------------
-    % add the label to the label property list
-    %-------------------------------------------------------------
-    \tl_clear:N \l_tmpa_tl
-    \prop_get:NnNTF \l_nobib_labels_prop {#3} \l_tmpa_tl {
-      \int_set:Nn \l_tmpa_int {\tl_count:N \l_tmpa_tl}
-    } {
-      \int_set:Nn \l_tmpa_int {0}
-    }
-    \int_incr:N \l_tmpa_int
-    % need to use \exp_args:NNe since \tl_put_right:Nn is not defined
-    \exp_args:NNe \tl_put_right:Nn \l_tmpa_tl {{#3 - \int_use:N \l_tmpa_int}}
-    \prop_put:NnV \l_nobib_labels_prop {#3} \l_tmpa_tl
+      %-------------------------------------------------------------
+      % update the label count in the label count property list
+      %-------------------------------------------------------------
+      \prop_get:NnN \l_nobib_label_count_prop {#3} \l_tmpa_tl
+      % need to use \exp_args:NNe since \int_set:Ne is not defined
+      \exp_args:NNe \int_set:Nn \l_tmpa_int {\l_tmpa_tl}
+      \int_incr:N \l_tmpa_int
+      \tl_set:Ne \l_tmpa_tl {\int_use:N \l_tmpa_int}
+      \prop_put:NnV \l_nobib_label_count_prop {#3} \l_tmpa_tl
 
-    % create the label for backreference
-    \label{#3 - \int_use:N \l_tmpa_int} 
+      % create the label for backreference
+      \label{#3 - \int_use:N \l_tmpa_int}
   } {
     % ERROR! The citation key does not exist.
     \color_group_begin: \color_select:n {red}
@@ -203,106 +110,94 @@
   }
 }
 
-%% \NewDocumentCommand{\cy}{so}{
-%%       \IfBooleanTF{##1}{ % starred version: 
-%%       % print the citation as <author> (<year>)
-%%       \hyperlink{#1}{#2~(#3)} 
-%%     } { % unstarred version: 
-%%       \IfValueTF {##2} {
-%%         \if:w {##2 = a} {
-%%           % print just the author name <author>   
-%%           \hyperlink{#1}{#2}
-%%         } \else {
-%%           if:w {##2 = y} {
-%%             % print just the year of publication <year>
-%%             \hyperlink{#1}{#3}
-%%           } \else {
-%%             % print something weird 
-%%             \texttt{\\\\did not specify a proper argument
-%%               ('a' or 'y') while citing a reference}
-%%           } \fi:
-%%         } \fi:              
-%%       } {
-%%         % print the citation as <author>, <year>
-%%         \hyperlink{#1}{#2,~#3}
-%%       }
-%%     }
-%%     \int_incr:N \l_nobib_#1_counter_int
-%%     \tl_put_right:Nn \l_nobib_#1_labels_tl {
-%%       #1_label_ \int_use:N \l_nobib_#1_counter_int}
-%%     \label{#1_label_ \int_use:N \l_#1_counter}
-%% } % of the nested NewDocumentCommand
-
-%%   % create a list of labels
-%%   \tl_new:N \l_nobib_#1_labels_tl
-  
-%%   \NewDocumentCommand{\cs:w #1 \cs_end:}{so}{
-%%     \IfBooleanTF{##1}{ % starred version: 
-%%       % print the citation as <author> (<year>)
-%%       \hyperlink{#1}{#2~(#3)} 
-%%     } { % unstarred version: 
-%%       \IfValueTF {##2} {
-%%         \if:w {##2 = a} {
-%%           % print just the author name <author>   
-%%           \hyperlink{#1}{#2}
-%%         } \else {
-%%           if:w {##2 = y} {
-%%             % print just the year of publication <year>
-%%             \hyperlink{#1}{#3}
-%%           } \else {
-%%             % print something weird 
-%%             \texttt{\\\\did not specify a proper argument
-%%               ('a' or 'y') while citing a reference}
-%%           } \fi:
-%%         } \fi:              
-%%       } {
-%%         % print the citation as <author>, <year>
-%%         \hyperlink{#1}{#2,~#3}
-%%       }
-%%     }
-%%     \int_incr:N \l_nobib_#1_counter_int
-%%     \tl_put_right:Nn \l_nobib_#1_labels_tl {
-%%       #1_label_ \int_use:N \l_nobib_#1_counter_int}
-%%     \label{#1_label_ \int_use:N \l_#1_counter}
-%%   } % of the nested NewDocumentCommand
-%% }
-
-%% \NewDocumentCommand{\nobibReferenceEntry}{mm}{
-%%   % #1: the reference key
-%%   % #2: the reference text that appears in the .tex document
-%%   \int_compare:nNnTF {\l_nobib_#1_counter_int} > {0} {
-%%     % print the reference text
-%%     \hypertarget{#1}{#2}
-
-%%     \int_compare:nNnTF {\l_nobib_#1_counter_int} = {1} {
-%%       % the reference has been cited exactly once
-%%       \seq_pop_left:NN \l_nobib_#1_labels_tl \l_tmpa_tl 
-%%       \small{(Cited on page \pageref{\tl_use:N \l_tmpa_tl}.)}
-%%     } {
-%%       \int_compare:nNnTF {\l_nobib_#1_counter_int} = {2} {
-%%         % the reference has been cited twice
-%%         \seq_pop_left:NN \l_nobib_#1_labels_tl \l_tmpa_tl
-%%         \seq_pop_left:NN \l_nobib_#1_labels_tl \l_tmpb_tl 
-%%         \small{(Cited on pages \pageref{\tl_use:N \l_tmpa_tl}
-%%           and \pageref{\tl_use:N \l_tmpb_tl}.)}
-
-%% } {
-%%         % the reference has been cited three or more times
-%%         \small{(Cited on pages }
-%%         \int_set:Nn \l_tmpa_int {\l_nobib_#1_counter_int}
-%%         \int_do_while:nNnn {\l_tmpa_int} > {1} {
-%%           % repeat this for all but the last reference
-%%           \seq_pop_left:NN \l_nobib_#1_labels_tl \l_tmpa_tl
-%%           \small{\pageref{\tl_use:N \l_tmpa_tl}, }
-%%           \int_decr:N \l_tmpa_int
-%%         }
-%%         % the last reference
-%%         \seq_pop_left:NN \l_nobib_#1_labels_tl \l_tmpa_tl
-%%         \small{and \pageref{\tl_use:N \l_tmpa_tl}.)}
-%%       }
-%%     }
-%%   } {
-%%     % if the reference is not cited even once in the paper, do not include it
-%%   } 
-%% }
-
+%=============================================================
+% function for printing the bibliography at the end
+%=============================================================
+\NewDocumentCommand{\nobibCreateBibliography}{}{
+  \int_set:Nn \l_tmpa_int {\tl_count:N \l_nobib_keys_tl}
+  \int_compare:nNnTF {\l_tmpa_int} > {0} {
+    \medskip
+    \begin{list}{}{
+        \setlength{\topsep}{0pt}
+        \setlength{\leftmargin}{0.2in}
+        \setlength{\listparindent}{-0.2in}
+        \setlength{\itemindent}{-0.2in}
+        \setlength{\parsep}{\parskip}
+      }
+      \int_set:Nn \l_tmpb_int {1}
+      \int_do_while:nNnn {\l_tmpb_int} < {\l_tmpa_int + 1} {        
+      \item % create a new \item entry in the list environment
+        %-------------------------------------------------------------
+        % store the key name in and store the reference information
+        % from the \l_nobib_info_prop property list in \l_tmpa_tl
+        %-------------------------------------------------------------
+        \tl_set:Ne \l_nobib_key_tl {\tl_item:Nn \l_nobib_keys_tl {\l_tmpb_int}}
+        % need the following complicated and weird expression because
+        % (i)  \prop_get:NoN is not defined, and
+        % (ii) \exp_args:NNoN is not defined
+        \exp_args:NNoo \prop_get:NnN \l_nobib_info_prop {\l_nobib_key_tl} {
+          \exp_not:N \l_tmpa_tl}
+        %-------------------------------------------------------------
+        % get the label count in \l_nobib_tmpa_int
+        %-------------------------------------------------------------
+        \exp_args:NNoo \prop_get:NnN \l_nobib_label_count_prop {\l_nobib_key_tl} {
+          \exp_not:N \l_tmpb_tl}
+        % need to use \exp_args:NNe since \int_set:Ne is not defined
+        \exp_args:NNe \int_set:Nn \l_nobib_tmpa_int {\l_tmpb_tl}
+        
+        \int_compare:nNnTF {\l_nobib_tmpa_int} > {0} {
+          \hypertarget{\tl_use:N \l_nobib_key_tl}{
+            % put the actual reference text in the LaTeX document
+            \tl_item:Nn \l_tmpa_tl {3} ~
+            %-------------------------------------------------------------
+            % add the backlinks to the pages where this reference was cited on
+            %-------------------------------------------------------------
+            \int_compare:nNnTF {\l_nobib_tmpa_int} = {1} {
+              {\tiny (cited~on~page~\pageref{\tl_use:N \l_nobib_key_tl- 1})}
+            } {
+              \int_compare:nNnTF {\l_nobib_tmpa_int} = {2} {
+                {\tiny (cited~on~pages~\pageref{\tl_use:N \l_nobib_key_tl - 1}~
+                  and~\pageref{\tl_use:N \l_nobib_key_tl - 2})}
+              } {
+                {\tiny (cited~on~pages~\pageref{\tl_use:N \l_nobib_key_tl - 1},~}
+                \int_set:Nn \l_nobib_tmpb_int {2}
+                \int_do_while:nNnn {\l_nobib_tmpb_int} < {\l_nobib_tmpa_int} {
+                  {\tiny \pageref{\tl_use:N \l_nobib_key_tl -
+                      \int_use:N \l_nobib_tmpb_int},~}
+                  \int_incr:N \l_nobib_tmpb_int
+                }
+                    {\tiny and~ \pageref{\tl_use:N \l_nobib_key_tl -
+                        \int_use:N \l_nobib_tmpa_int})}
+              }
+            }
+          }
+        } {
+          % this particular reference has not been cited even once
+          \color_group_begin: \color_select:n {red}
+          \par------------------------------------------?
+          ?------------------------------------------\par
+          Error!~The~citation~key~``\texttt{\tl_item:Nn \l_tmpa_tl {1}}''~
+          has~not~been~cited~even~once~in~the~text.~Consider~removing~
+          this~entry!
+          \par
+          % put the actual reference text in the LaTeX document
+          \tl_item:Nn \l_tmpa_tl {3}
+          \par------------------------------------------?
+          ?------------------------------------------\par
+          \color_group_end:
+        }
+        \int_incr:N \l_tmpb_int % increment the counter for the outer while loop
+      }    
+    \end{list}
+  } {
+    % ERROR! No references exist.
+    \color_group_begin: \color_select:n {red}
+    \par------------------------------------------?
+    ?------------------------------------------\par
+    Error!~No~references~exist.~Please~add~references~
+    using~the~``\texttt{\textbackslash nobibReferenceEntry}''~command.
+    \par------------------------------------------?
+    ?------------------------------------------\par
+    \color_group_end:
+  } 
+}
