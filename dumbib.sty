@@ -10,9 +10,9 @@
 \int_new:N \l_dumbib_tmpb_int
 \tl_new:N \l_dumbib_key_tl
 % Can I created a ``linked'' property list here? How?
-\prop_new:N \l_dumbib_info_prop
-\prop_new:N \l_dumbib_label_count_prop
-\tl_new:N \l_dumbib_keys_tl
+\prop_new:N \g_dumbib_info_prop
+\prop_new:N \g_dumbib_label_count_prop
+\tl_new:N \g_dumbib_keys_tl
 
 %=============================================================
 % function for creating the dumbib references database
@@ -24,7 +24,7 @@
   %% #2: the author names
   %% #3: the year of publication
   %% #4: actual reference text
-  \prop_get:NnNTF \l_dumbib_info_prop {#1} \l_tmpa_tl {
+  \prop_get:NnNTF \g_dumbib_info_prop {#1} \l_tmpa_tl {
     % if the key already exists in the property list, raise error
     \color_group_begin: \color_select:n {red}
     \par===================??===================\par
@@ -40,11 +40,11 @@
     \color_group_end:
   } {
     % store the author and year information in the property list
-    \prop_put:Nnn \l_dumbib_info_prop  {#1} {{#2} {#3} {#4}}
-    \prop_put:Nnn \l_dumbib_label_count_prop {#1} {0}
+    \prop_gput:Nnn \g_dumbib_info_prop  {#1} {{#2} {#3} {#4}}
+    \prop_gput:Nnn \g_dumbib_label_count_prop {#1} {0}
 
-    % store the key in the token list for generating the bibliography later
-    \tl_put_right:Nn \l_dumbib_keys_tl {{#1}}
+    % store the key in token list for generating the bibliography later
+    \tl_gput_right:Nn \g_dumbib_keys_tl {{#1}}
   }
 }
 
@@ -52,7 +52,7 @@
 % function for citing the references
 %=============================================================
 \RenewDocumentCommand{\cite}{som}{
-  \prop_get:NnNTF \l_dumbib_info_prop {#3} \l_tmpa_tl {
+  \prop_get:NnNTF \g_dumbib_info_prop {#3} \l_tmpa_tl {
       \IfBooleanTF {#1} {
         % starred version:       
         \IfValueTF {#2} {
@@ -100,18 +100,17 @@
           }
         }
       }
+      
       %-------------------------------------------------------------
       % update the label count in the label count property list
       %-------------------------------------------------------------
-      \prop_get:NnN \l_dumbib_label_count_prop {#3} \l_tmpa_tl
+      \prop_get:NnN \g_dumbib_label_count_prop {#3} \l_tmpb_tl
       % need to use \exp_args:NNe since \int_set:Ne is not defined
-      \exp_args:NNe \int_set:Nn \l_tmpa_int {\l_tmpa_tl}
+      \exp_args:NNe \int_set:Nn \l_tmpa_int {\l_tmpb_tl}
       \int_incr:N \l_tmpa_int
-      \tl_set:Ne \l_tmpa_tl {\int_use:N \l_tmpa_int}
-      \prop_put:NnV \l_dumbib_label_count_prop {#3} \l_tmpa_tl
-
-      \tl_show:N \l_tmpa_tl
-      \prop_show:N \l_dumbib_label_count_prop
+      \tl_set:Ne \l_tmpb_tl {\int_use:N \l_tmpa_int}
+      % use gput, lest the values are lost inside \begin{env} .. \end{env}
+      \prop_gput:NnV \g_dumbib_label_count_prop {#3} \l_tmpb_tl
 
       % create the label for backreference
       \phantomsection \label{#3 - \int_use:N \l_tmpa_int}
@@ -120,8 +119,8 @@
     \color_group_begin: \color_select:n {red}
     \par------------------------------------------?
     ?------------------------------------------\par
-    Error!~The~citation~key~``\texttt{\tl_to_str:n {#3}}''~does~not~
-    exist!~Please~add~it~using~the~
+    Error!~The~citation~key~``\texttt{\tl_to_str:n {#3}}''~
+    does~not~exist!~Please~add~it~using~the~
     ``\texttt{\textbackslash dumbibReferenceEntry}''~command.
     \par------------------------------------------?
     ?------------------------------------------\par
@@ -133,7 +132,7 @@
 % function for printing the bibliography at the end
 %=============================================================
 \NewDocumentCommand{\dumbibCreateBibliography}{}{
-  \int_set:Nn \l_tmpa_int {\tl_count:N \l_dumbib_keys_tl}
+  \int_set:Nn \l_tmpa_int {\tl_count:N \g_dumbib_keys_tl}
   \int_compare:nNnTF {\l_tmpa_int} > {0} {
     \medskip
     \begin{list}{}{
@@ -148,19 +147,19 @@
       \item % create a new \item entry in the list environment
         %-------------------------------------------------------------
         % store the key name in and store the reference information
-        % from the \l_dumbib_info_prop property list in \l_tmpa_tl
+        % from the \g_dumbib_info_prop property list in \l_tmpa_tl
         %-------------------------------------------------------------
         \tl_set:Ne \l_dumbib_key_tl {
-          \tl_item:Nn \l_dumbib_keys_tl {\l_tmpb_int}}
+          \tl_item:Nn \g_dumbib_keys_tl {\l_tmpb_int}}
         % need the following complicated and weird expression because
         % (i)  \prop_get:NoN is not defined, and
         % (ii) \exp_args:NNoN is not defined
-        \exp_args:NNoo \prop_get:NnN \l_dumbib_info_prop {
+        \exp_args:NNoo \prop_get:NnN \g_dumbib_info_prop {
           \l_dumbib_key_tl} {\exp_not:N \l_tmpa_tl}
         %-------------------------------------------------------------
         % get the label count in \l_dumbib_tmpa_int
         %-------------------------------------------------------------
-        \exp_args:NNoo \prop_get:NnN \l_dumbib_label_count_prop {
+        \exp_args:NNoo \prop_get:NnN \g_dumbib_label_count_prop {
           \l_dumbib_key_tl} {\exp_not:N \l_tmpb_tl}
         % need to use \exp_args:NNe since \int_set:Ne is not defined
         \exp_args:NNe \int_set:Nn \l_dumbib_tmpa_int {\l_tmpb_tl}
