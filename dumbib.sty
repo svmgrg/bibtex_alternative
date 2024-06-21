@@ -19,7 +19,7 @@
 %=============================================================
 \NewDocumentCommand{\dumbibReferenceEntry}{mmmm}{
   \par {\bf Fix~the~usepackage~requirepackage~hyperref~thing.~Also~the~backlinks~in~the~page~numbers~don't~work!!!!~Aaargh!!!!!~And~what~is~phantomsection~while~using~the~label~command???~AAAARGHHH!~Need~to~add~a~backslash~after~the~et~al.~refernces.~Maybe~this~package~should~be~called~dumbib?~Also~fix~the~underscore~issue??
-  Replace the error messages with a better error interface? Maybe a single function???}
+    Replace the error messages with a better error interface? Maybe a single function???}
   %% #1: the reference key which also serves as the function name
   %% #2: the author names
   %% #3: the year of publication
@@ -53,67 +53,67 @@
 %=============================================================
 \RenewDocumentCommand{\cite}{som}{
   \prop_get:NnNTF \g_dumbib_info_prop {#3} \l_tmpa_tl {
-      \IfBooleanTF {#1} {
-        % starred version:       
-        \IfValueTF {#2} {
-          \color_group_begin: \color_select:n {red}
-          \par------------------------------------------?
-          ?------------------------------------------\par
-          Error!~Gave~an~optional~argument~with~the~starred~version~
-          while~citing~the~reference~``\texttt{\tl_to_str:n {#3}}''.
-          \par------------------------------------------?
-          ?------------------------------------------\par
-          \color_group_end:
-        } {
-          % print the citation as <author> (<year>)
-          \hyperlink{#3}{
-            \tl_item:Nn \l_tmpa_tl {1} \c_space_token
-            ( \tl_item:Nn \l_tmpa_tl {2} )
-          }
-        }
+    \IfBooleanTF {#1} {
+      % starred version:       
+      \IfValueTF {#2} {
+        \color_group_begin: \color_select:n {red}
+        \par------------------------------------------?
+        ?------------------------------------------\par
+        Error!~Gave~an~optional~argument~with~the~starred~version~
+        while~citing~the~reference~``\texttt{\tl_to_str:n {#3}}''.
+        \par------------------------------------------?
+        ?------------------------------------------\par
+        \color_group_end:
       } {
-        % unstarred version: 
-        \IfValueTF {#2} {
-          \token_if_eq_meaning:NNTF #2 a {
-            % print just the author name <author>
-            \hyperlink{#3}{\tl_item:Nn \l_tmpa_tl {1}}
-          } {
-            \token_if_eq_meaning:NNTF #2 y {
-              % print just the year of publication <year>
-              \hyperlink{#3}{\tl_item:Nn \l_tmpa_tl {2}}
-            } {
-              \color_group_begin: \color_select:n {red}
-              \par------------------------------------------?
-              ?------------------------------------------\par
-              Error!~Did~not~specify~the~proper~argument~(`a'~or~`y')~
-              while~citing~the~reference~``\texttt{\tl_to_str:n {#3}}''.
-              \par------------------------------------------?
-              ?------------------------------------------\par
-              \color_group_end:
-            }
-          }              
-        } {
-          % print the citation as <author>, <year>
-          \hyperlink{#3}{
-            \tl_item:Nn \l_tmpa_tl {1} , \c_space_token
-            \tl_item:Nn \l_tmpa_tl {2}
-          }
+        % print the citation as <author>, <year>
+        \hyperlink{#3}{
+          \tl_item:Nn \l_tmpa_tl {1} , \c_space_token
+          \tl_item:Nn \l_tmpa_tl {2}
         }
       }
-      
-      %-------------------------------------------------------------
-      % update the label count in the label count property list
-      %-------------------------------------------------------------
-      \prop_get:NnN \g_dumbib_label_count_prop {#3} \l_tmpb_tl
-      % need to use \exp_args:NNe since \int_set:Ne is not defined
-      \exp_args:NNe \int_set:Nn \l_tmpa_int {\l_tmpb_tl}
-      \int_incr:N \l_tmpa_int
-      \tl_set:Ne \l_tmpb_tl {\int_use:N \l_tmpa_int}
-      % use gput, lest the values are lost inside \begin{env} .. \end{env}
-      \prop_gput:NnV \g_dumbib_label_count_prop {#3} \l_tmpb_tl
+    } {
+      % unstarred version: 
+      \IfValueTF {#2} {
+        \token_if_eq_meaning:NNTF #2 a {
+          % print just the author name <author>
+          \hyperlink{#3}{\tl_item:Nn \l_tmpa_tl {1}}
+        } {
+          \token_if_eq_meaning:NNTF #2 y {
+            % print just the year of publication <year>
+            \hyperlink{#3}{\tl_item:Nn \l_tmpa_tl {2}}
+          } {
+            \color_group_begin: \color_select:n {red}
+            \par------------------------------------------?
+            ?------------------------------------------\par
+            Error!~Did~not~specify~the~proper~argument~(`a'~or~`y')~
+            while~citing~the~reference~``\texttt{\tl_to_str:n {#3}}''.
+            \par------------------------------------------?
+            ?------------------------------------------\par
+            \color_group_end:
+          }
+        }              
+      } {
+        % print the citation as <author> (<year>)
+        \hyperlink{#3}{
+          \tl_item:Nn \l_tmpa_tl {1} \c_space_token
+          ( \tl_item:Nn \l_tmpa_tl {2} )
+        }
+      }
+    }
+    
+    %-------------------------------------------------------------
+    % update the label count in the label count property list
+    %-------------------------------------------------------------
+    \prop_get:NnN \g_dumbib_label_count_prop {#3} \l_tmpb_tl
+    % need to use \exp_args:NNe since \int_set:Ne is not defined
+    \exp_args:NNe \int_set:Nn \l_tmpa_int {\l_tmpb_tl}
+    \int_incr:N \l_tmpa_int
+    \tl_set:Ne \l_tmpb_tl {\int_use:N \l_tmpa_int}
+    % use gput, lest the values are lost inside \begin{env} .. \end{env}
+    \prop_gput:NnV \g_dumbib_label_count_prop {#3} \l_tmpb_tl
 
-      % create the label for backreference
-      \phantomsection \label{#3 - \int_use:N \l_tmpa_int}
+    % create the label for backreference
+    \phantomsection \label{#3 - \int_use:N \l_tmpa_int}
   } {
     % ERROR! The citation key does not exist.
     \color_group_begin: \color_select:n {red}
@@ -131,7 +131,7 @@
 %=============================================================
 % function for printing the bibliography at the end
 %=============================================================
-\NewDocumentCommand{\dumbibCreateBibliography}{}{
+\NewDocumentCommand{\dumbibCreateBibliography}{s}{
   \int_set:Nn \l_tmpa_int {\tl_count:N \g_dumbib_keys_tl}
   \int_compare:nNnTF {\l_tmpa_int} > {0} {
     \medskip
@@ -165,11 +165,15 @@
         \exp_args:NNe \int_set:Nn \l_dumbib_tmpa_int {\l_tmpb_tl}
         
         \int_compare:nNnTF {\l_dumbib_tmpa_int} > {0} {
+          % put the actual reference text in the LaTeX document
           \hypertarget{\tl_use:N \l_dumbib_key_tl}{
-            % put the actual reference text in the LaTeX document
-            \tl_item:Nn \l_tmpa_tl {3} ~
+            \tl_item:Nn \l_tmpa_tl {3}
+          } ~
+          \IfBooleanTF {#1} {
+            % starred version does not add backlinks
+          } {
             %-------------------------------------------------------------
-            % add backlinks to the pages where this reference was cited on
+            % add backlinks to pages where this reference was cited on
             %-------------------------------------------------------------
             \int_compare:nNnTF {\l_dumbib_tmpa_int} = {1} {
               {\tiny (cited~on~page~
