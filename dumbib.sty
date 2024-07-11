@@ -45,9 +45,9 @@
     \msg_line_context:}
 }
 
-\DeclareOption{suppress_errors}{
+\DeclareOption{error_mode}{
   \RenewDocumentCommand{\dumbibRaiseError}{oomm}{
-    \msg_warning:nnxx {dumbib} {dumbib_msg_two_args} {#4} {\msg_line_context:}
+    \msg_error:nnxx {dumbib} {dumbib_msg_two_args} {#4} {\msg_line_context:}
   }
 }
 \ProcessOptions\relax

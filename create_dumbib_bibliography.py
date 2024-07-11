@@ -1,7 +1,7 @@
 import argparse
 import pdb
 
-from utilities import *
+from dumbib_utilities import *
 
 #--------------------------------------------------------------------
 # read command line arguments to get parameter configurations
