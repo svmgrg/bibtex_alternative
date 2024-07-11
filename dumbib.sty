@@ -6,8 +6,10 @@
 % variable declarations
 % =============================================================
 % for storing the reference details (author, year, title, etc.)
-\prop_new:N \g_dumbib_info_prop 
+\prop_new:N \g_dumbib_info_prop
+% for counting how many times each reference key has been cited in-text
 \prop_new:N \g_dumbib_label_count_prop
+% list of all the keys of the dumbib reference declared in the database
 \tl_new:N \g_dumbib_keys_tl
 
 \int_new:N \l_dumbib_tmpa_int
@@ -40,13 +42,14 @@
       \color_group_end:
     }
   \end{center}
-  % print a short warning on the terminal and log file
+  % print a short warning on the terminal
   \msg_warning:nnxx {dumbib} {dumbib_msg_two_args} {#4} {
     \msg_line_context:}
 }
 
 \DeclareOption{error_mode}{
   \RenewDocumentCommand{\dumbibRaiseError}{oomm}{
+    % raise a short error message on the terminal
     \msg_error:nnxx {dumbib} {dumbib_msg_two_args} {#4} {\msg_line_context:}
   }
 }
@@ -67,7 +70,7 @@
     \dumbibRaiseError[\tl_item:Nn \l_tmpa_tl {3}][#4]{
       The~key~``\texttt{\tl_to_str:n {#1}}''~has~been~already~
       defined.~Consider~using~a~different~key~name.
-    }{Key~`\tl_to_str:n {#1}'~already~defined.}
+    } {Key~`\tl_to_str:n {#1}'~already~defined.}
   } {
     % store the author and year information in the property list
     \prop_gput:Nnn \g_dumbib_info_prop  {#1} {{#2} {#3} {#4}}
@@ -162,10 +165,12 @@
         \setlength{\parsep}{\parskip}
       }
       \int_set:Nn \l_tmpb_int {1}
-      \int_do_while:nNnn {\l_tmpb_int} < {\l_tmpa_int + 1} {        
+      \int_do_while:nNnn {\l_tmpb_int} < {\l_tmpa_int + 1} {
+        
       \item % create a new \item entry in the list environment
+        
         % -------------------------------------------------------------
-        % store the key name in and store the reference information
+        % get the key name and store the reference information
         % from the \g_dumbib_info_prop property list in \l_tmpa_tl
         % -------------------------------------------------------------
         \tl_set:Ne \l_dumbib_key_tl {
@@ -175,12 +180,12 @@
         % (ii) \exp_args:NNoN is not defined
         \exp_args:NNoo \prop_get:NnN \g_dumbib_info_prop {
           \l_dumbib_key_tl} {\exp_not:N \l_tmpa_tl}
+        
         % -------------------------------------------------------------
-        % get the label count in \l_dumbib_tmpa_int
+        % get the label count for this key in \l_dumbib_tmpa_int
         % -------------------------------------------------------------
         \exp_args:NNoo \prop_get:NnN \g_dumbib_label_count_prop {
           \l_dumbib_key_tl} {\exp_not:N \l_tmpb_tl}
-        % need to use \exp_args:NNe since \int_set:Ne is not defined
         \exp_args:NNe \int_set:Nn \l_dumbib_tmpa_int {\l_tmpb_tl}
         
         \int_compare:nNnTF {\l_dumbib_tmpa_int} > {0} {
@@ -196,7 +201,7 @@
             % -----------------------------------------------------------
             \int_compare:nNnTF {\l_dumbib_tmpa_int} = {1} {
               {\tiny (cited~on~page~
-                \pageref{\tl_use:N \l_dumbib_key_tl- 1})}
+                \pageref{\tl_use:N \l_dumbib_key_tl - 1})}
             } {
               \int_compare:nNnTF {\l_dumbib_tmpa_int} = {2} {
                 {\tiny (cited~on~pages~
@@ -242,10 +247,13 @@
 % =============================================================
 % random comments and resources for future me
 % =============================================================
-% Look at the book ``The LaTeX3 Interfaces'' (available here: https://texdoc.org/serve/interface3/0) for how to program in LaTeX.
+% Look at the book ``The LaTeX3 Interfaces'' (available here: https://texdoc.org/serve/interface3/0) for how to program in LaTeX. This is the de-facto reference and along with the book lshort (``The Not So Short Introduction to LaTeX''; available here: https://tobi.oetiker.ch/lshort/lshort.pdf), and some google/ChatGPT searches should suffice.
+%
+%
+% Further, these resources may or may not be helpful: https://tex.stackexchange.com/questions/12668/where-do-i-start-latex-programming, https://pgfplots.sourceforge.net/TeX-programming-notes.pdf, https://www.alanshawn.com/latex3-tutorial/#latex3-token-list-and-string
 % 
 % 
-% For the \ProvidesExplPackage command, see the book ``The Not So Short Introduction to LaTeX'', Section 7.1.5 (available here: https://tobi.oetiker.ch/lshort/lshort.pdf). For the commands \DeclareOption and \ProcessOptions, see https://www.overleaf.com/learn/latex/Writing_your_own_package.
+% For the \ProvidesExplPackage command, see Section 7.1.5 of lshort. For the commands \DeclareOption and \ProcessOptions, see https://www.overleaf.com/learn/latex/Writing_your_own_package.
 % 
 % 
 % While declaring variables, can I created a ``linked'' property list? How? I wasn't able to do that with my TeXLive installation?
@@ -257,4 +265,4 @@
 % | table, section, subsection, chapter, etc. 
 % 
 % 
-% At one place, I needed to use \exp_args:NNe, since \int_set:Ne was not defined for my TeXLive version; however it is possible that some newer LaTeX interfaces have this?
+% At a few places, I needed to use something like \exp_args:NNe, since \int_set:Ne was not defined for my TeXLive version; however it is possible that some newer LaTeX interfaces have this?
