@@ -1,9 +1,0 @@
-\begin{Verbatim}[commandchars=\\\{\}]
-    According to \PYG{k}{\PYGZbs{}cite}\PYG{n+nb}{\PYGZob{}}noorden2014\PYG{n+nb}{\PYGZcb{}}, the most cited paper in recorded history
-    is a biology paper by \PYG{k}{\PYGZbs{}cite}\PYG{n+na}{[a]}\PYG{n+nb}{\PYGZob{}}lowry1951\PYG{n+nb}{\PYGZcb{}} that has been cited hundreds of
-    thousands of times. Unfortunately, we don\PYGZsq{}t conduct any experiments
-    involving proteins, and are thus more likely to cite some probability
-    or machine learning texts
-    (such as \PYG{k}{\PYGZbs{}cite*}\PYG{n+nb}{\PYGZob{}}talagrand2022\PYG{n+nb}{\PYGZcb{}}; \PYG{k}{\PYGZbs{}cite*}\PYG{n+nb}{\PYGZob{}}bach2023a\PYG{n+nb}{\PYGZcb{}}; \PYG{k}{\PYGZbs{}cite}\PYG{n+na}{[y]}\PYG{n+nb}{\PYGZob{}}bach2023b\PYG{n+nb}{\PYGZcb{}}).
-    In particular, the book by \PYG{k}{\PYGZbs{}cite}\PYG{n+nb}{\PYGZob{}}talagrand2022\PYG{n+nb}{\PYGZcb{}} seems quite readable and useful.
-\end{Verbatim}

@@ -1,0 +1,6 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+    \PYG{k}{\PYGZbs{}hypersetup}\PYG{n+nb}{\PYGZob{}}
+      colorlinks,
+      linkcolor=\PYG{n+nb}{\PYGZob{}}red!33!black\PYG{n+nb}{\PYGZcb{}}
+    \PYG{n+nb}{\PYGZcb{}}
+\end{Verbatim}

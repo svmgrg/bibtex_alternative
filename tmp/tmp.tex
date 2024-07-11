@@ -1,0 +1,11 @@
+\documentclass{article}
+%\RequirePackage{expl3}
+
+\ExplSyntaxOn
+\msg_new:nnn {foo} {warning-message} {blablabla #1}
+\msg_warning:nnx {foo} {warning-message} {~\msg_line_context:}
+\ExplSyntaxOff
+
+\begin{document}
+TEST
+\end{document}
