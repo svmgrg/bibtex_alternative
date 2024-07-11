@@ -23,21 +23,23 @@
 
 \NewDocumentCommand{\dumbibRaiseError}{oomm}{
   % print the elaborate message on the PDF
-  \parbox{\textwidth}{
-    \color_group_begin: \color_select:n {red}
-    \par \rule[0mm]{\textwidth}{1pt} \par
-    {\bf Error~\msg_line_context:!} ~ #3
-    \IfValueTF {#1} {        
-      \par \rule[1mm]{\textwidth}{0.2pt} \par
-      {\bf Original~entry:} ~ #1
-    } {}
-    \IfValueTF {#2} {
-      \par \rule[1mm]{\textwidth}{0.2pt} \par
-      {\bf New~(ignored)~entry:} ~ #2
-    } {}
-    \par \rule[1mm]{\textwidth}{1pt} \par
-    \color_group_end:
-  }
+  \begin{center}
+    \parbox{0.95\textwidth}{
+      \color_group_begin: \color_select:n {red}
+      \par \rule[0mm]{0.95\textwidth}{1pt} \par
+      {\bf Error~\msg_line_context:!} ~ #3
+      \IfValueTF {#1} {        
+        \par \rule[1mm]{0.95\textwidth}{0.2pt} \par
+        {\bf Original~entry:} ~ #1
+      } {}
+      \IfValueTF {#2} {
+        \par \rule[1mm]{0.95\textwidth}{0.2pt} \par
+        {\bf New~(ignored)~entry:} ~ #2
+      } {}
+      \par \rule[1mm]{0.95\textwidth}{1pt} \par
+      \color_group_end:
+    }
+  \end{center}
   % print a short warning on the terminal and log file
   \msg_warning:nnxx {dumbib} {dumbib_msg_two_args} {#4} {
     \msg_line_context:}
