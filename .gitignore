@@ -16,4 +16,4 @@
 *.tar.gz
 
 _minted-*/*
-__pychage__/*
+__pycache__/*
