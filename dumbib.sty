@@ -119,8 +119,11 @@
         }              
       } {
         % print the citation as <author> (<year>)
+        % note that we used a `/' instead of a `c_space_token' or `~' to
+        % separate the <author> and (<year>) as this seemed to give the
+        % optimal spacing in the final PDF output
         \hyperlink{#3}{
-          \tl_item:Nn \l_tmpa_tl {1} \c_space_token
+          \tl_item:Nn \l_tmpa_tl {1} \ 
           ( \tl_item:Nn \l_tmpa_tl {2} )
         }
       }
