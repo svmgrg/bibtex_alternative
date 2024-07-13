@@ -84,7 +84,7 @@ def find_author_list(bib_dict):
     entries from Google Scholar), then we don't do this processing. For
     instance, if the name is 'Van Winkle, Rip', then the output will be
     {'last_name': 'Van Winkle', 'first_names': 'R.'}. Aargh!!
-    
+'''
 https://www.timvanerven.nl/publications/     Like many Dutch names, my family name `Van Erven' consists of multiple words. In the Netherlands, the prefix ‘van’ is capitalised, except when directly preceded by a given name (e.g. Tim) or initials.
 
     This program doesn't handle any special cases while shortening the
@@ -229,7 +229,7 @@ def find_venue(bib_dict):
                          '\n{}'.format(bib_dict['raw_data']))
     parenthetical_text = extract_text_in_braces(raw_text)
 
-    #fix this thing!!! also see if bibtex fields are empty, then a problem!
+    fix this thing!!! also see if bibtex fields are empty, then a problem!
     
     if 'workshop' in parenthetical_text:
         warnings.warn(
