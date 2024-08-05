@@ -51,10 +51,10 @@ def find_bibliography_type(bib_dict):
         bib_dict['type'] = bib_type
     else:
         bib_dict['error_message'] += \
-            '\n{}\nUnknown bibliography entry type: {}\n{}'\
-            '\n(Please add it to the source code in the dictionary'\
-            '\n"bib_entry_types" to proceed.)\n{}'.format(
-                '=' * 64, bib_type, '-' * 64, '=' * 64)
+            '\n- Unknown bibliography entry type: {}.'\
+            ' (Please add it to the source code in the dictionary'\
+            ' "bib_entry_types" in the code to proceed.)'.format(
+                bib_type)
         bib_dict['INCLUDE_FLAG'] = False
 
 def find_author_list(bib_dict):
@@ -145,9 +145,7 @@ https://www.timvanerven.nl/publications/     Like many Dutch names, my family na
         bib_dict['author_list'] = processed_author_list
     except:
         bib_dict['error_message'] += \
-            '\n{}\nBibliography entry has some problems with the author'\
-            ' list!\n{}\n{}{}'.format(
-                '=' * 64, '-' * 64, bib_dict['raw_data'], '=' * 64)
+            '\n- The entry has problems with the author list.'
         bib_dict['INCLUDE_FLAG'] = False
 
 def find_year(bib_dict):
@@ -165,17 +163,15 @@ def find_year(bib_dict):
         parenthetical_text = extract_text_in_braces(raw_text)
         re_out = re.findall(r'[0-9]+', parenthetical_text)
         if len(re_out) != 1:
-            raise ValueError(
-                '\n{}\nBibliography entry has some problems with the'\
-                ' publication year!\n{}\n{}{}'.format(
-                    '=' * 64, '-' * 64, bib_dict['raw_data'], '=' * 64))
-        year = re_out[0]
-        bib_dict['year'] = year
+            bib_dict['error_message'] += \
+                '\n- The entry has problems with the publication year.'
+            bib_dict['INCLUDE_FLAG'] = False
+        else: 
+            year = re_out[0]
+            bib_dict['year'] = year
     except:
         bib_dict['error_message'] += \
-            '\n{}\nBibliography entry has some problems with the'\
-            ' publication year!\n{}\n{}{}'.format(
-                '=' * 64, '-' * 64, bib_dict['raw_data'], '=' * 64)
+            '\n- The entry has problems with the publication year.'
         bib_dict['INCLUDE_FLAG'] = False
 
 def find_title(bib_dict):
@@ -191,9 +187,7 @@ def find_title(bib_dict):
         bib_dict['title'] = ' '.join(parenthetical_text.split())
     except:
         bib_dict['error_message'] += \
-            '\n{}\nBibliography entry has some problems with the title!'\
-            '\n{}\n{}{}'.format(
-                '=' * 64, '-' * 64, bib_dict['raw_data'], '=' * 64)
+            '\n- The entry has problems with the title.'
         bib_dict['INCLUDE_FLAG'] = False
 
 def find_venue(bib_dict):
@@ -235,8 +229,9 @@ def find_venue(bib_dict):
 
         if 'workshop' in parenthetical_text.lower():
             bib_dict['warning_message'] += \
-                'The publication venue is a workshop. Returning the'\
-                ' venue name verbatim:\n{}'.format(bib_dict['raw_data'])
+                '\n- The publication venue is a workshop, and thus'\
+                + ' the venue name was used verbatim. You might need to'\
+                + ' edit it manually for proper formatting.'
             processed_venue_name = parenthetical_text
         elif FLAG_ARXIV:
             processed_venue_name = 'arXiv: ' + parenthetical_text
@@ -254,17 +249,15 @@ def find_venue(bib_dict):
             if not FLAG_FOUND_VENUE:
                 processed_venue_name = None
                 bib_dict['error_message'] += \
-                    '\n{}\nUnknown publication venue: {}' \
-                    '\nPlease add this to the CSV file.\n{}{}\n'.format(
-                        '=' * 64, parenthetical_text, '-' * 64,
-                        bib_dict['raw_data'], '=' * 64)
+                    '\n- Unknown publication venue: {}. Please add it'\
+                    ' to the "venue_list.csv" file to process this'\
+                    ' entry.'.format(parenthetical_text)
                 bib_dict['INCLUDE_FLAG'] = False
                 
         bib_dict['venue'] = processed_venue_name
     except:
         bib_dict['error_message'] += \
-            'Unable to find the publication name\n{}'.format(
-                bib_dict['raw_data'])
+            '\n- Unable to find the publication name for this entry.'
         bib_dict['INCLUDE_FLAG'] = False
 
 #--------------------------------------------------------------------
@@ -284,8 +277,6 @@ def process_bibtex_into_reference_list(bibtex_filename):
     '''
     with open(bibtex_filename) as f:
         bibtex_data = f.read()
-
-    # pdb.set_trace()
         
     bib_list = re.split(r'(@[a-z]*{)', bibtex_data)
     num_references = len(bib_list)
@@ -304,7 +295,8 @@ def process_bibtex_into_reference_list(bibtex_filename):
             'author_string': '',         # a single string of all authors
             'author_list': None,         # list of authors
             'duplicate': False,          # if this is a duplicate entry
-            'key': None,                 # key for LaTeX referencing
+            'id': None,                  # to keep track of all entries
+            'key': 'None',               # key for LaTeX referencing
             'possible_duplicate': False, # for possible duplicates
             'print_author_string': None, # this is what is printed in-text
             'raw_data': None,            # the raw BibTeX entry
@@ -317,7 +309,10 @@ def process_bibtex_into_reference_list(bibtex_filename):
             'year_index': ''             # for (Feynman, 1960a, 1960b)
         })
 
-        bib_dict['raw_data'] = raw_bib_type + raw_bib_info
+        bib_dict['id'] = int((i - 1) / 2)
+
+        # for removing trailing newlines
+        bib_dict['raw_data'] = (raw_bib_type + raw_bib_info).rstrip()
         
         find_bibliography_type(bib_dict)
         find_author_list(bib_dict)
@@ -370,18 +365,17 @@ def sort_and_create_keys_for_references(reference_list):
             
             if ref1['title'] == ref2['title']:
                 ref2['error_message'] += \
-                    '{}\nWarning: Duplicate entries!\n{}'\
-                    '\n{}{}\n{}{}\n'.format('=' * 64, '-' * 64,
-                                            ref1['raw_data'], '-' * 64,
-                                            ref2['raw_data'], '=' * 64)
+                    '\n- The following are duplicate entries: references'\
+                    + ' #{} and #{}.'.format(ref1['id'], ref2['id'])\
+                    + ' Please remove one of the duplicate entries from' \
+                    + ' the .bibtex file.'
                 ref2['duplicate'] = True
                 ref2['INCLUDE_FLAG'] = False
             else:
                 ref2['warning_message'] += \
-                    '{}\nWarning: Possibly Duplicate entries!\n{}'\
-                    '\n{}{}\n{}{}\n'.format('=' * 64, '-' * 64,
-                                            ref1['raw_data'], '-' * 64,
-                                            ref2['raw_data'], '=' * 64)
+                    '\n- The following are possibly duplicate entries: '\
+                    + '# {} and #{}.'.format(ref1['id'], ref2['id'])\
+                    + ' Consider checking them manually.'
                 ref2['possible_duplicate'] = True
 
     #-----------------------------------------------------------------
@@ -398,8 +392,7 @@ def sort_and_create_keys_for_references(reference_list):
         num_authors = len(reference['author_list'])
         if num_authors == 0:
             reference['warning_message'] += \
-                'This reference has zero authors'\
-                '\n{}'.format(reference['raw_data'])
+                '\n- This entry has zero authors.'
             key_string = '???{}'.format(reference['year'])
             print_author_string = '???'
         if num_authors == 1:
@@ -464,37 +457,71 @@ def sort_and_create_keys_for_references(reference_list):
                 reference['title'] = '\\textit{{{}}}'.format(
                     reference['title'])
             else:
+                # this branch shouldn't have been invoked! There must be
+                # some error in the program.
                 raise ValueError('Unknown bibliography entry type:'\
                                  ' {}'.format(reference['type']))
 
     return reference_list
 
-def layout_latex_references(reference_list):
-    for reference in reference_list:
-        if reference['INCLUDE_FLAG']:
+def layout_latex_references(reference_list, dumbib_database_filename):
+    if dumbib_database_filename[-4:] == '.tex':
+        output_filename = dumbib_database_filename
+        log_filename = dumbib_database_filename[:-4] + '.log'
+    else:
+        output_filename = dumbib_database_filename + '.tex'
+        log_filename = dumbib_database_filename + '.log'
             
-            print('\dumbibReferenceEntry'\
-                  '{{{key}}}{{{print_author}}}{{{year}{year_index}}}%\n'\
-                  '{{{author_list} ({year}{year_index}).'\
-                  ' {title}. {venue}.}}'.format(
-                      key = reference['key'],
-                      print_author = reference['print_author_string'],
-                      year = reference['year'],
-                      year_index = reference['year_index'],
-                      author_list = reference['author_string'],
-                      title = reference['title'],
-                      venue = reference['venue']))
+    with open(output_filename, 'w') as f:
+        for reference in reference_list:
+            if reference['INCLUDE_FLAG']:
+                print('\dumbibReferenceEntry{{{key}}}'\
+                      '{{{print_author}}}{{{year}{year_index}}}%\n'\
+                      '{{{author_list} ({year}{year_index}).'\
+                      ' {title}. {venue}.}}\n'.format(
+                          key = reference['key'],
+                          print_author = reference['print_author_string'],
+                          year = reference['year'],
+                          year_index = reference['year_index'],
+                          author_list = reference['author_string'],
+                          title = reference['title'],
+                          venue = reference['venue']), file=f)
+                
+    with open(log_filename, 'w') as f:
+        reference_list.sort(key = lambda reference: (reference['id']))
+        for reference in reference_list:
+            print_string = '=' * 64 + '\n'\
+                + 'Reference id: {}  (key generated: {})\n'.format(
+                    reference['id'], reference['key'])\
+                + '-' * 64 + '\n~~~~~~~~~~~~~~~~~~\n'\
+                + 'Raw .bibtex input:\n~~~~~~~~~~~~~~~~~~\n'\
+                + '{}\n'.format(reference['raw_data']) + '\n'
             
-            print('{} ({}{}). {}. {}.\n{}\n'.format(
-                reference['author_string'],
-                reference['year'],
-                reference['year_index'],
-                reference['title'],
-                reference['venue'],
-                reference['key']))
-            print('\n', reference['warning_message'])
-        else:
-            print(reference['error_message'])
+            if reference['INCLUDE_FLAG']:
+                print_string += '~~~~~~~~~~~~~~~~~~~~~\n'\
+                    + 'The processed output:\n'\
+                    + '~~~~~~~~~~~~~~~~~~~~~\n'\
+                    +'{} ({}{}). {}. {}.'.format(
+                        reference['author_string'],
+                        reference['year'],
+                        reference['year_index'],
+                        reference['title'],
+                        reference['venue'])
+            else:
+                print_string += '~' * 59 + '\n'\
+                    'No output was generated! Following errors were'\
+                    + ' encountered:\n'\
+                    + '~' * 59 + reference['error_message']
+                
+            if len(reference['warning_message']) > 0:
+                print_string += '\n\n'\
+                    + '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n'\
+                    + 'There are some warnings for this entry:\n'\
+                    + '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'\
+                    + reference['warning_message']
+            print_string += '\n' + '=' * 64 + '\n\n\n'
+                
+            print(print_string, file=f)
 
 def extract_text_in_braces(temp_string):
     string_len = len(temp_string)
