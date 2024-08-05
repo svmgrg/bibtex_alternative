@@ -360,10 +360,8 @@ def sort_and_create_keys_for_references(reference_list):
         if not ref1['INCLUDE_FLAG'] or not ref2['INCLUDE_FLAG'] :
             continue  # skip this reference pair; it had some error
         
-        if ref1['author_string'].lower() == ref2['author_string'].lower()\
-           and ref1['year'] == ref2['year']:
-            
-            if ref1['title'] == ref2['title']:
+        if ref1['author_string'].lower() == ref2['author_string'].lower():
+            if ref1['title'].lower() == ref2['title'].lower():
                 ref2['error_message'] += \
                     '\n- The following are duplicate entries: references'\
                     + ' #{} and #{}.'.format(ref1['id'], ref2['id'])\
@@ -490,6 +488,8 @@ def layout_latex_references(reference_list, dumbib_database_filename):
     with open(log_filename, 'w') as f:
         reference_list.sort(key = lambda reference: (reference['id']))
         for reference in reference_list:
+            PRINT_ON_TERMINAL_FLAG = False
+            
             print_string = '=' * 64 + '\n'\
                 + 'Reference id: {}  (key generated: {})\n'.format(
                     reference['id'], reference['key'])\
@@ -508,6 +508,7 @@ def layout_latex_references(reference_list, dumbib_database_filename):
                         reference['title'],
                         reference['venue'])
             else:
+                PRINT_ON_TERMINAL_FLAG = True
                 print_string += '~' * 59 + '\n'\
                     'No output was generated! Following errors were'\
                     + ' encountered:\n'\
@@ -522,6 +523,9 @@ def layout_latex_references(reference_list, dumbib_database_filename):
             print_string += '\n' + '=' * 64 + '\n\n\n'
                 
             print(print_string, file=f)
+            
+            if PRINT_ON_TERMINAL_FLAG:
+                print(print_string)
 
 def extract_text_in_braces(temp_string):
     string_len = len(temp_string)
