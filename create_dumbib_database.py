@@ -1,5 +1,6 @@
 import argparse
 import pandas
+import pdb
 import re
 
 #======================================================================
@@ -109,6 +110,7 @@ def find_author_list(bib_dict):
     program would not correct it.
     2. Some people might shorten names like "McDonald" to "McD.", but
     this program will output "M.".
+    3. Doesn't handle names like "Gerard 't Hooft" properly.
     
     If you care about these issues, please do a manual check!
     '''
@@ -124,9 +126,9 @@ def find_author_list(bib_dict):
         author_list = re.split(r'\s+and\s+', parenthetical_text)
         for author in author_list:
 
-            # for dealing with names like 'von der' or 'van der'
-            author = re.sub(r"von der", "von_der", author)
-            author = re.sub(r"van der", "van_der", author)
+            # for dealing with names like 'von der' or 'van de'
+            author = re.sub(r"von de", "von_de", author)
+            author = re.sub(r"van de", "van_de", author)
             
             if ',' in author: # google scholar style
                 names_list = re.split(r',', author)
@@ -497,7 +499,7 @@ def layout_latex_references(reference_list, dumbib_database_filename):
     with open(output_filename, 'w') as f:
         for reference in reference_list:
             if reference['INCLUDE_FLAG']:
-                print('\dumbibReferenceEntry{{{key}}}'\
+                print('\\dumbibReferenceEntry{{{key}}}'\
                       '{{{print_author}}}{{{year}{year_index}}}%\n'\
                       '{{{author_list} ({year}{year_index}).'\
                       ' {title}. {venue}.}}\n'.format(
