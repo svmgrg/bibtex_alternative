@@ -6,7 +6,7 @@ This repository contains
 - the dumbib LaTeX package ``.sty`` file
 - the ``create_dumbib_database.py`` Python script, which can be used to create a dumbib database from a BibTeX file, and its helper file called ``venue_list.csv``
 
-For more information about the dumbib package and how to use it, please see its documentation file ``dumbib_user_guide.pdf``.
+For more information about the dumbib package and how to use it, please see the (documentation)[https://github.com/svmgrg/bibtex_alternative/blob/main/create_dumbib_database.py] (``dumbib_user_guide.pdf``).
 
 The script can be used as follows:
 
