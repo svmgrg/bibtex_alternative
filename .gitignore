@@ -12,6 +12,8 @@
 *.fls
 *.xoj
 
+.~lock.venue_list.csv#
+
 *.tar.gz
 
 _minted-*/*
