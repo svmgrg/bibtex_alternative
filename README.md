@@ -1,6 +1,6 @@
 # bibtex_alternative
 
-A very simple LaTeX package, called **dumbib** for bibliography management.
+A minimalistic LaTeX package, called **dumbib** for bibliography management.
 
 This repository contains
 - the dumbib LaTeX package ``.sty`` file
