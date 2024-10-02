@@ -14,4 +14,4 @@ The script can be used as follows:
 
 Running this command will extract the publication title, venue, author list, and year of publication from the BibTeX entries and arrange them in an alphabetical order (using the author names) in the dumbib database file. The format used is very close to APA, but has minor differences. The script also produces a log file with the same name as the output file and a ``.log`` extension.
 
-**Warning:** The Python script will write over ``<dumbib_database.tex>`` if it already exists. So if you made any changes manually to ``<dumbib_database.tex>``, and later run the Python script with the same output filename in the arguments, those changes will be lost.
+**Warning:** The Python script will write over ``<dumbib_database.tex>`` if it already exists. So if you make any changes manually to ``<dumbib_database.tex>``, and later run the Python script with the same output filename in the arguments, those changes will be lost.
