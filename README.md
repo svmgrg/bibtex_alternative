@@ -1,5 +1,7 @@
 # bibtex_alternative
 
+**Does NOT work with arXiv right now (needs TeXLive 2024 to work; arXiv runs 2023)!! (Trying to fix this.)**
+
 A minimalistic LaTeX package, called **dumbib** for bibliography management.
 
 This repository contains
