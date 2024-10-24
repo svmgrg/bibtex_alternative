@@ -281,7 +281,7 @@ def find_venue(bib_dict):
         bib_dict['venue'] = processed_venue_name
     except:
         bib_dict['error_message'] += \
-            '\n- Unable to find the publication name for this entry.'
+            '\n- Unable to find the publication venue for this entry.'
         bib_dict['INCLUDE_FLAG'] = False
 
 #--------------------------------------------------------------------
@@ -431,7 +431,6 @@ def sort_and_create_keys_for_references(reference_list):
             print_author_string = '{} and {}'.format(
                 reference['author_list'][0]['last_name'],
                 reference['author_list'][1]['last_name'])
-                
         else:
             key_string = '{}_etal{}'.format(
                 reference['author_list'][0]['last_name'],
@@ -439,11 +438,9 @@ def sort_and_create_keys_for_references(reference_list):
             print_author_string = '{} et al.'.format(
                 reference['author_list'][0]['last_name'])
             
-        # remove any spaces and make everything lower case
-        reference['key'] = key_string.replace('{', '')\
-                                     .replace('}', '')\
-                                     .replace(' ', '')\
-                                     .lower()
+        # remove any special characters (except '-' and '_')
+        # and make everything lower case
+        reference['key'] = re.sub('[^A-Za-z0-9_-]+', '', key_string).lower()
         reference['print_author_string'] = print_author_string
 
     #-----------------------------------------------------------------

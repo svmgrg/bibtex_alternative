@@ -97,7 +97,7 @@
       } {
         % print the citation as <author>, <year>
         \hyperlink{#3}{
-          \tl_item:Nn \l_tmpa_tl {1} , \c_space_token
+          \tl_item:Nn \l_tmpa_tl {1} , \ % using '\' is better than using \c_space_token
           \tl_item:Nn \l_tmpa_tl {2}
         }
       }
@@ -137,7 +137,10 @@
     
     \exp_args:NNe \int_set:Nn \l_tmpa_int {\l_tmpb_tl}
     \int_incr:N \l_tmpa_int
-    \tl_set:Ne \l_tmpb_tl {\int_use:N \l_tmpa_int}
+    % need to use \exp_args:NNe since \tl_set:Ne doesn't work with
+    % TeXLive 2023, which is used by arXiv at the moment
+    % \tl_set:Ne \l_tmpb_tl {\int_use:N \l_tmpa_int}
+    \exp_args:NNe \tl_set:Nn \l_tmpb_tl {\int_use:N \l_tmpa_int}
     
     % use gput, lest the values are lost inside \begin{env} .. \end{env}
     \prop_gput:NnV \g_dumbib_label_count_prop {#3} \l_tmpb_tl
@@ -160,93 +163,204 @@
 \NewDocumentCommand{\dumbibCreateBibliography}{s}{
   \int_set:Nn \l_tmpa_int {\tl_count:N \g_dumbib_keys_tl}
   \int_compare:nNnTF {\l_tmpa_int} > {0} {
-    \medskip
-    \begin{list}{}{
-        \setlength{\topsep}{0pt}
-        \setlength{\leftmargin}{0.2in}
-        \setlength{\listparindent}{-0.2in}
-        \setlength{\itemindent}{-0.2in}
-        \setlength{\parsep}{\parskip}
-      }
+    % \IfLabelExistsTF doesn't work with TeXLive 2023
+    \cs_if_exist:NTF __dumbib_keys_label_count__ {
+      \medskip
+      \begin{list}{}{
+          \setlength{\topsep}{0pt}
+          \setlength{\leftmargin}{0.2in}
+          \setlength{\listparindent}{-0.2in}
+          \setlength{\itemindent}{-0.2in}
+          \setlength{\parsep}{\parskip}
+        }
+        \int_set:Nn \l_tmpb_int {1}
+        \int_do_while:nNnn {\l_tmpb_int} < {\l_tmpa_int + 1} {
+          
+        \item % create a new \item entry in the list environment
+          
+          % -------------------------------------------------------------
+          % get the key name and store the reference information
+          % from the \g_dumbib_info_prop property list in \l_tmpa_tl
+          % -------------------------------------------------------------
+          % need to use \exp_args:NNe since \tl_set:Ne doesn't work with
+          % TeXLive 2023, which is used by arXiv at the moment
+          % \tl_set:Ne \l_dumbib_key_tl {
+          %   \tl_item:Nn \g_dumbib_keys_tl {\l_tmpb_int}}
+          \exp_args:NNe \tl_set:Nn \l_dumbib_key_tl {
+            \tl_item:Nn \g_dumbib_keys_tl {\l_tmpb_int}}
+          
+          % need the following complicated and weird expression because
+          % (i)  \prop_get:NoN is not defined, and
+          % (ii) \exp_args:NNoN is not defined
+          \exp_args:NNoo \prop_get:NnN \g_dumbib_info_prop {
+            \l_dumbib_key_tl} {\exp_not:N \l_tmpa_tl}
+          
+          % -------------------------------------------------------------
+          % get the label count for this key from the auxiliary file
+          % and store it in \l_dumbib_tmpa_int
+          % -------------------------------------------------------------
+          \exp_args:NNe \int_set:Nn \l_dumbib_tmpa_int {
+            % \property_ref:ee {\exp_not:N __dumbib_keys_label_count__} {
+            \exp_args:Nee \property_ref:nn {\exp_not:N __dumbib_keys_label_count__} {
+              \tl_use:N \l_dumbib_key_tl}
+          }
+
+          \int_compare:nNnTF {\l_dumbib_tmpa_int} > {0} {
+            % put the actual reference text in the LaTeX document
+            \hypertarget{\tl_use:N \l_dumbib_key_tl}{
+              \tl_item:Nn \l_tmpa_tl {3}
+            } ~
+            \IfBooleanTF {#1} {
+              % starred version does not add backlinks
+            } {       
+              % -----------------------------------------------------------
+              % add backlinks to pages where this reference was cited on
+              % -----------------------------------------------------------
+              \int_compare:nNnTF {\l_dumbib_tmpa_int} = {1} {
+                {\tiny (cited~on~page~
+                  \pageref{\tl_use:N \l_dumbib_key_tl - 1})}
+              } {
+                \int_compare:nNnTF {\l_dumbib_tmpa_int} = {2} {
+                  {\tiny (cited~on~pages~
+                    \pageref{\tl_use:N \l_dumbib_key_tl - 1}~and~
+                    \pageref{\tl_use:N \l_dumbib_key_tl - 2})}
+                } {
+                  {\tiny (cited~on~pages~
+                    \pageref{\tl_use:N \l_dumbib_key_tl - 1},~}
+                  \int_set:Nn \l_dumbib_tmpb_int {2}
+                  \int_do_while:nNnn
+                  {\l_dumbib_tmpb_int} < {\l_dumbib_tmpa_int} {
+                    {\tiny \pageref{\tl_use:N \l_dumbib_key_tl -
+                        \int_use:N \l_dumbib_tmpb_int},~}
+                    \int_incr:N \l_dumbib_tmpb_int
+                  } {
+                    \tiny and~ \pageref{\tl_use:N \l_dumbib_key_tl -
+                      \int_use:N \l_dumbib_tmpa_int})
+                  }
+                }
+              }
+            }
+          } {
+            % this particular reference has not been cited even once
+            \dumbibRaiseError[\tl_item:Nn \l_tmpa_tl {3}]{
+              The~citation~key~``\texttt{\tl_to_str:N \l_dumbib_key_tl}''~
+              has~not~been~used~even~once~in~the~text.~Consider~removing~
+              this~entry.~(Note~that~\texttt{dumbib}~does~{\bf not}~have~
+              a~command~equivalent~to~``\texttt{\textbackslash~nocite}''.)
+            }{Key~`\tl_to_str:N \l_dumbib_key_tl'~has~never~been~cited.}
+          }
+          \int_incr:N \l_tmpb_int % increment counter for outer while loop
+        }    
+      \end{list}
+    } {
+      % raise an error if the document has not been compiled twice
+      \dumbibRaiseError{
+        The~\LaTeX{}~file~has~been~compiled~only~once;~\texttt{dumbib}~
+        requires~two~compilations~to~generate~the~bibliography~section.~
+        Please~compile~the~file~again.
+      }{dumbib~requires~two~compilations~to~generate~the~bibliography.}
+    }
+
+    \AtEndDocument{
+      \str_clear:N \l_tmpa_str
+      
+      \int_set:Nn \l_tmpa_int {\tl_count:N \g_dumbib_keys_tl}
+      % we know that \l_tmpa_int is greater than zero, otherwise
+      % the code would never land in this thread
       \int_set:Nn \l_tmpb_int {1}
       \int_do_while:nNnn {\l_tmpb_int} < {\l_tmpa_int + 1} {
-        
-      \item % create a new \item entry in the list environment
-        
         % -------------------------------------------------------------
-        % get the key name and store the reference information
-        % from the \g_dumbib_info_prop property list in \l_tmpa_tl
+        % get the key name and store it in \l_dumbib_key_tl
         % -------------------------------------------------------------
-        \tl_set:Ne \l_dumbib_key_tl {
+        \exp_args:NNe \tl_set:Nn \l_dumbib_key_tl {
           \tl_item:Nn \g_dumbib_keys_tl {\l_tmpb_int}}
-        % need the following complicated and weird expression because
-        % (i)  \prop_get:NoN is not defined, and
-        % (ii) \exp_args:NNoN is not defined
-        \exp_args:NNoo \prop_get:NnN \g_dumbib_info_prop {
-          \l_dumbib_key_tl} {\exp_not:N \l_tmpa_tl}
-        
         % -------------------------------------------------------------
         % get the label count for this key in \l_dumbib_tmpa_int
         % -------------------------------------------------------------
         \exp_args:NNoo \prop_get:NnN \g_dumbib_label_count_prop {
           \l_dumbib_key_tl} {\exp_not:N \l_tmpb_tl}
         \exp_args:NNe \int_set:Nn \l_dumbib_tmpa_int {\l_tmpb_tl}
-        
-        \int_compare:nNnTF {\l_dumbib_tmpa_int} > {0} {
-          % put the actual reference text in the LaTeX document
-          \hypertarget{\tl_use:N \l_dumbib_key_tl}{
-            \tl_item:Nn \l_tmpa_tl {3}
-          } ~
-          \IfBooleanTF {#1} {
-            % starred version does not add backlinks
-          } {
-            % -----------------------------------------------------------
-            % add backlinks to pages where this reference was cited on
-            % -----------------------------------------------------------
-            \int_compare:nNnTF {\l_dumbib_tmpa_int} = {1} {
-              {\tiny (cited~on~page~
-                \pageref{\tl_use:N \l_dumbib_key_tl - 1})}
-            } {
-              \int_compare:nNnTF {\l_dumbib_tmpa_int} = {2} {
-                {\tiny (cited~on~pages~
-                  \pageref{\tl_use:N \l_dumbib_key_tl - 1}~and~
-                  \pageref{\tl_use:N \l_dumbib_key_tl - 2})}
-              } {
-                {\tiny (cited~on~pages~
-                  \pageref{\tl_use:N \l_dumbib_key_tl - 1},~}
-                \int_set:Nn \l_dumbib_tmpb_int {2}
-                \int_do_while:nNnn
-                {\l_dumbib_tmpb_int} < {\l_dumbib_tmpa_int} {
-                  {\tiny \pageref{\tl_use:N \l_dumbib_key_tl -
-                      \int_use:N \l_dumbib_tmpb_int},~}
-                  \int_incr:N \l_dumbib_tmpb_int
-                } {
-                  \tiny and~ \pageref{\tl_use:N \l_dumbib_key_tl -
-                    \int_use:N \l_dumbib_tmpa_int})
-                }
-              }
-            }
-          }
-        } {
-          % this particular reference has not been cited even once
-          \dumbibRaiseError[\tl_item:Nn \l_tmpa_tl {3}]{
-            The~citation~key~``\texttt{\tl_to_str:N \l_dumbib_key_tl}''~
-            has~not~been~used~even~once~in~the~text.~Consider~removing~
-            this~entry!~(Note~that~\texttt{dumbib}~does~{\bf not}~have~
-            a~command~equivalent~to~``\texttt{\textbackslash~nocite}''.)
-          }{Key~`\tl_to_str:N \l_dumbib_key_tl'~has~never~been~cited.}
+
+        % store the number of times this reference has been cited in the text
+        % \str_put_right:Ne \l_tmpa_str {
+        \exp_args:NNe \str_put_right:Nn \l_tmpa_str {
+          {\tl_to_str:N \l_dumbib_key_tl }
+          {\int_to_arabic:n {\l_dumbib_tmpa_int}}
         }
-        \int_incr:N \l_tmpb_int % increment counter for outer while loop
-      }    
-    \end{list}
+
+        \int_incr:N \l_tmpb_int % increment counter for the while loop
+      }
+      
+      \immediate \write \@auxout {
+        \token_to_str:N \new@label@record
+        {__dumbib_keys_label_count__} {\str_use:N \l_tmpa_str}
+      }
+    }
+    
   } {
     % no references exist.
     \dumbibRaiseError{
       No~references~exist.~Please~add~references~using~the~
       ``\texttt{\textbackslash dumbibReferenceEntry}''~command.
     }{The~dumbib~database~is~empty.}    
-  } 
+  }
 }
+
+% \flag_new:n { l__property_ref_flag }
+
+% \cs_new_protected:Npn \new@label@record #1#2 
+% {
+%   \tl_if_exist:cTF { r@#1 }
+%   {
+%     \gdef \@multiplelabels
+%     { \@latex@warning@no@line { There~were~multiply-defined~labels } }
+%     \@latex@warning@no@line { Label~‘#1’~multiply~defined }
+%   }
+%   {
+%     \tl_new:c { r@#1 }
+%     \tl_gset:cn { r@#1 }{#2}
+%   }
+%   \__property_data:nnn {#1} #2 { \q_recursion_tail } { ? } \q_recursion_stop
+% }
+
+% \cs_new_protected:Npn \__property_data:nnn #1#2#3
+% {
+%   \quark_if_recursion_tail_stop:n {#2}
+%   \tl_gclear_new:c { g__property_label_ \tl_to_str:n {#1} _ \tl_to_str:n {#2} _tl }
+%   \tl_gset:cn { g__property_label_ \tl_to_str:n {#1} _ \tl_to_str:n {#2} _tl } {#3}
+%   \__property_data:nnn {#1}
+% }
+
+% \cs_new:Npn \property_ref:nn #1#2
+% {
+%   \__property_ref:een
+%   { \tl_to_str:n {#1} }
+%   { \tl_to_str:n {#2} }
+%   { \tl_use:c { g__property_default_ #2 _tl } }
+% }
+% \cs_generate_variant:Nn \property_ref:nn {ee}
+
+% \cs_new:Npn \property_ref:nnn #1#2#3
+% {
+%   \__property_ref:een
+%   { \tl_to_str:n {#1} }
+%   { \tl_to_str:n {#2} }
+%   {#3}
+% }
+% \cs_new:Npn \__property_ref:nnn #1#2#3
+% {
+%   \tl_if_exist:cTF { g__property_label_ #1 _ #2 _tl }
+%   { \tl_use:c { g__property_label_ #1 _ #2 _tl } }
+%   {
+%     \flag_if_raised:nF
+%     { l__property_ref_flag } { \flag_raise:n { l__property_ref_flag } }
+%     \tl_if_exist:cTF { g__property_default_ #2 _tl }
+%     { #3 }
+%     { \msg_expandable_error:nnn { property } { not-declared } {#2} }
+%   }
+% }
+% \cs_generate_variant:Nn \__property_ref:nnn { ee }
+% \cs_generate_variant:Nn \property_ref:nnn {een}
 
 % =============================================================
 % random comments and resources for future me
@@ -270,3 +384,4 @@
 % 
 % 
 % At a few places, I needed to use something like \exp_args:NNe, since \int_set:Ne was not defined for my TeXLive version; however it is possible that some newer LaTeX interfaces have this?
+
