@@ -40,30 +40,32 @@
 
 The \dumbib\ package helps with bibliography management for \LaTeX{}, by creating forward links (i.e.\ when you cite a paper, the in-text citation links to the bibliography entry in the reference section) and backward links (i.e.\ the bibliography entries link back to all the places in the document where they were cited). \textbf{This is the only functionality that this package provides}; to remind users of how minimalistic \dumbib\ is in its processing, it even has the word ``dumb'' (or ``dum'' for dummy, depending on how you prefer it) in its name.
 
-Owing to this minimalistic processing, \dumbib\ gives its users a near complete control over how their bibliography looks like, which is its primary appeal. This is in contrast to popular bibliography packages such as \Bib\TeX{} or \Bib\LaTeX, which provide a lot of functionality but require additional effort from the users to tweak the program output to their exact liking. However, for some people (in particular those who like to manage their bibliography manually) the flexibility that \dumbib\ affords by requiring that its users take care of the missing functionality should make the tradeoff worthwhile. The nice thing about this arrangement is that \dumbib\ takes care of the core \LaTeX{} issues (providing forward and backward links) and the users do the remaining work, such as formatting the references in a unified style---work which can be readily automated using, say, a \texttt{Python} script. (This argument assumes that for most users, programming in \texttt{Python} would be a more comfortable experience than tweaking other bibliography packages or, worse, programming in \LaTeX.)
+Owing to this minimalistic processing, \dumbib\ gives its users a near complete control over how their bibliography looks like, which is its primary appeal. This is in contrast to popular bibliography packages such as \Bib\TeX{} or \Bib\LaTeX, which provide a lot of functionality but require additional effort from the users to tweak the program output to their exact liking. However, for some people (in particular those who like to manage their bibliography manually) the flexibility that \dumbib\ affords by requiring that its users take care of the missing functionality should make the tradeoff worthwhile. The nice thing about this arrangement is that \dumbib\ takes care of the core \LaTeX{} issues (providing forward and backward links) and the users do the remaining work, such as formatting the references in a unified style---work which can be readily automated using, say, a \texttt{Python} script. (This argument assumes that for some users, programming in \texttt{Python} would be a more comfortable experience than tweaking other bibliography packages or, worse, programming in \LaTeX.)
 
 To use \dumbib, ensure that the \texttt{dumbib.sty} file (which is available at the link given in the footnote at the bottom of this page) is in the path of your system and then include the package in the preamble of the \TeX{} document as follows:
 \begin{minted}{latex}
   \usepackage{dumbib}
 \end{minted}
-The package provides three commands for bibliography management:
+The package provides three main commands for bibliography management:
 \begin{enumerate}
-\item \mintinline{latex}|\dumbibReferenceEntry{}| for creating a bibliography database,
-\item \mintinline{latex}|\cite{}| for citing the references in the text, and
+\item \mintinline{latex}|\dumbibReferenceEntry| for creating a bibliography database,
+\item \mintinline{latex}|\cite| for citing the references in the text, and
 \item \mintinline{latex}|\dumbibCreateBibliography| for laying out the references in the bibliography section.
 \end{enumerate}
 
 \section{Creating a bibliography database} \label{sec: database_creation}
 At the beginning of your document you will need to create a database of all the references you plan to use in your document so that \dumbib\ is aware of them. This is done using the command
 \begin{minted}{latex}
-  \dumbibReferenceEntry{<key>}{<author>}{<year>}{<citation_text>}
+  \dumbibReferenceEntry[<optional>]{<key>}{<author>}{<year>}{<citation_text>}
 \end{minted}
 which has four mandatory arguments:
 \begin{itemize}
-\item \texttt{<key>} is the citation key which you will invoke when you want to cite this reference,
-\item \texttt{<author>} and \texttt{<year>} refer to the author(s) and the year of publication respectively that appear in-text when you cite this reference, and
-\item \texttt{<citation\_text>} is the bibliography entry that will go in the reference section.
+\item \mintinline{latex}|<key>| is the citation key which you will invoke when you want to cite this reference,
+\item \mintinline{latex}|<author>| and \mintinline{latex}|<year>| refer to the author(s) and the year of publication respectively that appear in-text when you cite this reference, and
+\item \mintinline{latex}|<citation_text>| is the bibliography entry that will go in the reference section.
 \end{itemize}
+There is also an optional argument \mintinline{latex}|<optional>|, which can be used to store text for creating variations while citing references (see Section \ref{sec: additional_customizations} for details). Note that if nothing is specified in the \texttt{<optional>} field, the text \texttt{`??'} gets automatically stored instead. We now give some examples.
+
 The following snippet adds two references to the \dumbib\ database in an APA like style:\footnote{Even though in this example, the author list, the paper title, and the publication venue appear in separate lines inside the \mintinline{latex}|\dumbibReferenceEntry{}| command, this was done only to improve readability; \dumbib\ doesn't care if they all were instead formatted in a single line.}
 \begin{minted}{latex}
   \dumbibReferenceEntry{lowry_etal1951}{Lowry et al.}{1951}{
@@ -72,13 +74,12 @@ The following snippet adds two references to the \dumbib\ database in an APA lik
     \textit{Journal of Biological Chemistry, 193}(1), 265-275.
   }
   
-  \dumbibReferenceEntry{noorden_etal2014}{Van Noorden, Maher, and Nuzzo}
-  {2014}{
+  \dumbibReferenceEntry{noorden_etal2014}{Van Noorden, Maher, and Nuzzo}{2014}{
     Van Noorden, R., Maher, B., Nuzzo, R. (2014).
     The top 100 papers. \textit{Nature News, 514}(7524), 550.
   }
 \end{minted}
-This snippet will go \textbf{after} the \mintinline{latex}|\begin{document}| command in your \TeX{} file. (If you prefer, you can instead put these reference declarations in a separate file, say, \texttt{database.tex}, and include that in your main \TeX{} file using the command \mintinline{latex}|\include{database.tex}|.)
+The above snippet will need to go \textbf{after} the \mintinline{latex}|\begin{document}| command in your \TeX{} file. (If you prefer, you can instead put these reference declarations in a separate file, say, \texttt{database.tex}, and include that in your main \TeX{} file using the command \mintinline{latex}|\include{database.tex}|.)
 
   \dumbibReferenceEntry{lowry_etal1951}{Lowry et al.}{1951}{
     Lowry, O. H., Rosebrough, N. J., Farr, A. L., Randall, R. J. (1951).
@@ -142,12 +143,12 @@ This snippet will go \textbf{after} the \mintinline{latex}|\begin{document}| com
   \end{minted}
   This is the succinct warning message that will be printed in the terminal:
 \begin{verbatim}
-Package dumbib Warning: Error on line 159! Key `talagrand2022' already
+Package dumbib Warning: Error on line 166! Key `talagrand2022' already
 (dumbib)                defined.
 \end{verbatim}
   This is the verbose error message that will appear in your output PDF:
   
-  \dumbibReferenceEntry{talagrand2022}{Talagrand}{2022}{
+  \dumbibReferenceEntry[Ta2022]{talagrand2022}{Talagrand}{2022}{
     Talagrand, M. (2022).
     Upper and lower bounds for stochastic processes: Decomposition
     theorems. \textit{Springer Nature.}
@@ -159,71 +160,123 @@ Package dumbib Warning: Error on line 159! Key `talagrand2022' already
   }
   The above error message is, by design, excessively intrusive so as to attract the user's attention to the errors. Once the user solves the corresponding error, the message will disappear.
 
-  \subsubsection*{Raising errors only on the terminal}
+  \subsection*{Raising errors only on the terminal}
   In case you do not want to see such verbose messages in the output PDF document, you can load the \dumbib\ package as follows:
   \begin{minted}{latex}
     \usepackage[error_mode]{dumbib}
   \end{minted}
-  In this mode, \dumbib\ will not show any errors in the output PDF, and instead raise a succinct message as an error on the terminal, i.e.\ it will pause the \LaTeX\ processing and require the user to type \texttt{<return>} in order to continue.
+  In this mode, \dumbib\ will not show any errors in the output PDF, and instead raise a succinct message as an error on the terminal, i.e.\ it will pause the \LaTeX\ processing and require the user to press the \texttt{<return>} key in order to continue.
 
   \section{Citing references in-text}
   The command to cite a reference in-text is
   \begin{minted}{latex}
-    \cite[*][<optional 'a' or 'y'>]{<key>}
+    \cite[*][<optional 'a', 'y', 'o', or 'm'>][<manual_text>]{<key>}
   \end{minted}
-  This command takes the citation \texttt{<key>} which is used to identify the reference, along with an optional star, or an optional \texttt{`a'} or \texttt{`y'} argument. The four valid variations and their corresponding in-text outputs are as follows:
+  This command takes the citation \texttt{<key>} which is used to identify the reference, along with an optional star, or an optional \texttt{`a'}, \texttt{`y'}, \texttt{`o'}, or \texttt{`m'} argument. The six valid variations and their corresponding in-text outputs are as follows:
   \begin{table}[!hbp]
     \centering
     \begin{tabular}{ll}
       \textbf{Variation} & \textbf{In-text output} \\
       \hline \hline
-      \mintinline{latex}|\cite{<key>}| & \texttt{<author> (<year>)} \\
+      \mintinline{latex}|\cite{<key>}| & \mintinline{latex}|<author> (<year>)| \\
       \hline
-      \mintinline{latex}|\cite*{<key>}| & \texttt{<author>, <year>} \\
+      \mintinline{latex}|\cite*{<key>}| & \mintinline{latex}|<author>, <year>| \\
       \hline
-      \mintinline{latex}|\cite[a]{<key>}| & \texttt{<author>} \\
+      \mintinline{latex}|\cite[a]{<key>}| & \mintinline{latex}|<author>| \\
       \hline
-      \mintinline{latex}|\cite[y]{<key>}| &\texttt{<year>}
+      \mintinline{latex}|\cite[y]{<key>}| &\mintinline{latex}|<year>| \\
+      \hline
+      \mintinline{latex}|\cite[o]{<key>}| &\mintinline{latex}|<optional>| \\
+      \hline
+      \mintinline{latex}|\cite[m][<manual_text>]{<key>}| &\mintinline{latex}|<manual_text>|
     \end{tabular}
   \end{table}
   \\
-  where the \texttt{<author>} and the \texttt{<year>} fields correspond to those that were specified during the \dumbib\ database creation. (If you use a combination other than the ones listed above, or cite a reference which has not been declared a priori, \dumbib\ will raise an error.)
-  
-  For example, the following snippet
+  where the \texttt{<author>}, the \texttt{<year>}, and the \texttt{<optional>} fields correspond to those that were specified when creating the \dumbib\ bibliography database.\footnote{Note that if \texttt{<optional>} field was not specified in the \mintinline{latex}|\dumbibReferenceEntry| command, then it is set to the default text \texttt{`??'}.} The last row in the above table shows the usage of the manual cite command \mintinline{latex}|\cite[m]|, where \mintinline{latex}|<manual_text>| field specifies exactly how the citation appears in text. (If you use a combination other than the ones listed above, or cite a reference which has not been declared a priori, \dumbib\ will raise an error.) We now give an example that illustrates the use of these commands.
+
+  The following snippet
   \begin{minted}{latex}
     According to \cite{noorden_etal2014}, the most cited paper in recorded
-    history is a biology paper by \cite[a]{lowry_etal1951}\ that has been 
-    cited hundreds of thousands of times. Unfortunately, we don't conduct
-    experiments involving proteins, and are thus more likely to cite some
-    probability or machine learning texts (such as \cite*{talagrand2022};
-    \cite*{bach2023a}; \cite[y]{bach2023b}). In particular, the book by
-    \cite{talagrand2022} is quite nice and very readable.
+    history is a biology paper by \cite[a]{lowry_etal1951}\ that has been cited
+    hundreds of thousands of times. Unfortunately, we don't conduct experiments
+    involving proteins, and are thus more likely to cite some probability or
+    machine learning texts (such as \cite*{talagrand2022}; \cite*{bach2023a};
+    \cite[y]{bach2023b}). In particular,
+    \cite[m][the 2022 book by Talagrand]{talagrand2022} is very readable.
   \end{minted}
-  produces this text:
+  produces the following text:
   \begin{center}
     \framebox[0.95\linewidth]{
       \parbox{0.93\textwidth}{
-        According to \cite{noorden_etal2014}, the most cited paper in recorded history is a biology paper by \cite[a]{lowry_etal1951}\ that has been cited hundreds of thousands of times. Unfortunately, we don't conduct experiments involving proteins, and are thus more likely to cite some probability or machine learning texts (such as \cite*{talagrand2022}; \cite*{bach2023a}; \cite[y]{bach2023b}). In particular, the book by \cite{talagrand2022} is quite nice and very readable.
+        According to \cite{noorden_etal2014}, the most cited paper in recorded
+        history is a biology paper by \cite[a]{lowry_etal1951}\ that has been cited
+        hundreds of thousands of times. Unfortunately, we don't conduct experiments
+        involving proteins, and are thus more likely to cite some probability or
+        machine learning texts (such as \cite*{talagrand2022}; \cite*{bach2023a};
+        \cite[y]{bach2023b}). In particular,
+        \cite[m][the 2022 book by Talagrand]{talagrand2022} is very readable.
       }
     }
   \end{center}
   
   As the above example shows, \textbf{the user needs to manually take care of everything down to the very basic details}. For instance, in the above example, we provided the opening and closing parentheses, the semi-colons, and even ensured that only the year of publication appeared in the last citation (\cite*{bach2023b}). We also had to put a backslash after the command \mintinline{latex}|\cite[a]{lowry_etal1951}| to ensure optimal spacing following a period,\footnote{This manual intervention is necessary, since \dumbib\ cannot ascertain whether this ``author-only'' citation was used in the middle of a sentence or at its end.} just like we would have done had we typed the entire thing manually, i.e.\ \texttt{`}\mintinline{latex}|Lowry et al.\|\texttt{'}.
 
-  \noindent \textbf{Note:}  To create the links, \dumbib\ uses the \texttt{hyperref} package under the hood. By default, such links would appear as \fcolorbox{red}{white}{colored bounding boxes}. Instead, if you want your links to appear as dark red-colored texts without any bounding boxes, as shown in the example above, you can include the following in the preamble of your \TeX{} file:
+  \noindent \textbf{Note:}  To create the links, \dumbib\ uses the \texttt{hyperref} package under the hood. By default, such links would appear as \fcolorbox{red}{white}{colored bounding boxes}. Instead, if you want your links to appear as dark red-colored texts without any bounding boxes, as shown in the example above, you can include the following command in the preamble of your \TeX{} file:
   \begin{minted}{latex}
     \hypersetup{colorlinks, linkcolor={red!33!black}}
   \end{minted}
+
+  \section{Additional customizations} \label{sec: additional_customizations}
+  In this section, we will discuss how the \texttt{<optional>} argument in the \mintinline{latex}|\dumbibReferenceEntry| command can be used to vary how the references are printed in-text when citing them. We begin by describing yet another command called \mintinline{latex}|\internalCite| in the \texttt{dumbib.sty} file, defined as follows:
+  \begin{minted}{latex}
+    \NewDocumentCommand{\internalCite}{smmm}{
+      \IfBooleanTF {#1} {% starred version (used in \cite*)
+        #2 , \ #3 % <author>, <year>                            <--- modify this!
+      } {% unstarred version (used in \cite)
+        #2 \ ( #3 ) % <author> (<year>)                         <--- modify this!
+      }
+    }
+  \end{minted}
+  The function \mintinline{latex}|\internalCite| specifies how citations appear in-text when using the \mintinline{latex}|\cite| command. Inside this function's deinition (as shown above), \texttt{`\#2'}, \texttt{`\#3'}, and \texttt{`\#4'} refer to the \mintinline{latex}|<author>|, \mintinline{latex}|<year>|, and \mintinline{latex}|<optional>| fields respectively. To change the default behavior of the \mintinline{latex}|\cite| and \mintinline{latex}|\cite*| commmand, the user needs to modify two lines in the \mintinline{latex}|\internalCite| function's definition (as highlighted above), to get the desired output. The following table shows some variations:
+  \begin{table}[!hbp]
+    \centering
+    \begin{tabular}{ll}
+      \textbf{Variation} & \textbf{In-text citation is printed as:} \\
+      \hline \hline
+      \mintinline{latex}|#2 , \ #3| & \mintinline{latex}|<author>, <year>| \\
+      \hline
+      \mintinline{latex}|#2 \ #3| & \mintinline{latex}|<author> <year>| \\
+      \hline
+      \mintinline{latex}|#2 \ ( #3 )| & \mintinline{latex}|<author> (<year>)| \\
+      \hline
+      \mintinline{latex}|#4| & \mintinline{latex}|<optional>| \\
+      \hline
+      \mintinline{latex}|[ #4 ]| & \mintinline{latex}|[<optional>]| \\
+      \hline
+      \mintinline{latex}|#4 \ ( #3 )| & \mintinline{latex}|<optional> (<year>)| \\
+      \hline
+      \mintinline{latex}|#2 \ [ #4 ]| & \mintinline{latex}|<author> [<optional>]|
+    \end{tabular}
+  \end{table}
+
+  For instance, say that, the user wants to use the style ``Lowry et al.\ 1951'' with the \mintinline{latex}|\cite*| and use the style ``Lowry and colleagues (1951)'' with the \mintinline{latex}|\cite| command. In this case, the user can modify the \mintinline{latex}|\internalCite| command to use the variations ``\mintinline{latex}|#2 \ #3|'' and ``\mintinline{latex}|#4 \ ( #3 )|'', and define the reference as follows (note the use of the optional argument):
+  \begin{minted}{latex}
+    \dumbibReferenceEntry[Lowry and colleagues]
+    {lowry_etal1951}{Lowry et al.}{1951}{
+      Lowry, O. H., Rosebrough, N. J., Farr, A. L., Randall, R. J. (1951).
+      Protein measurement with the Folin phenol reagent.
+      \textit{Journal of Biological Chemistry, 193}(1), 265-275.
+    }
+  \end{minted}
+  Another relevant use case is when the user wants to use the citation style ``[XYZ+2025]'', in favor of the using ``X et al.\ (2025)''. In this case, the users could set the optional argument in the \mintinline{latex}|\dumbibReferenceEntry| to be ``\texttt{XYZ+2025}'', and modify the \mintinline{latex}|\internalCite| command accordingly.
   
   \section{Laying out the bibliography section}
   The following command lays out the references in the bibliography section:
   \begin{minted}{latex}
-    \dumbibCreateBibliography[*]
+    \dumbibCreateBibliography[*][optional 'o' argument]
   \end{minted}
-  The starred version of this command does not produce backward links to the places where the papers were cited in-text, whereas the unstarred version does.
 
-  The following snippet can be used to create a reference section similar to the one that appears at the end of this page.
-
+  The following snippet creates a reference section similar to the one that appears at the end of this page:
   \begin{minted}{latex}
     \section*{References} % \addcontentsline{toc}{chapter}{References}
     \dumbibCreateBibliography
@@ -231,6 +284,8 @@ Package dumbib Warning: Error on line 159! Key `talagrand2022' already
 
   The \mintinline{latex}|\dumbibCreateBibliography| command raises an error if a bibliography entry were created in the database but never cited in-text. Also, as can be seen below, \textbf{the references are displayed in the same order in which they were declared using the \mintinline{latex}|\dumbibReferenceEntry{}| command} during the creation of the \dumbib\ database. Therefore, if you want the references to appear in an alphabetical order, you should declare them alphabetically. Also note that the style of references below is not consistent, because during their declaration, we did not follow a consistent style. Further, if a reference is cited multiple times (such as the book by \cite*{talagrand2022}) on the same page, it will appear multiple times in the backward links as well (see the last reference below).
 
+  \subsection*{Using the starred version and the optional \texttt{`o'} argument}
+  The starred version of this command does not produce backward links to the places where the papers were cited in-text, whereas the unstarred version does. The optional \texttt{`o'} argument is useful in certain cases, such as when the user is using the citation style ``[XYZ+2025]'', where each entry in bibliography needs to begin with some text like ``[XYZ+2025]''. In such cases, the user can use the optional \texttt{`o'} argument, which will result in each reference entry beginning with \texttt{[<optional>]}, where the \texttt{<optional>} field is the one specified while creating the \dumbib\ reference database.
   \section*{References}
   \dumbibCreateBibliography
 

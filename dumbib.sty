@@ -1,5 +1,5 @@
 % user guide is available here: https://github.com/svmgrg/bibtex_alternative
-\ProvidesExplPackage{dumbib}{2024/07/13}{1.0}{%
+\ProvidesExplPackage{dumbib}{2024/02/16}{1.1}{%
   Package for providing forward and backward links while citing references.}
 \RequirePackage{hyperref}
 
@@ -72,8 +72,7 @@
 % \new@label@record is not available in TeXLive 2023 (used
 % by arXiv at the moment), hence necessitating the duplication.
 % =============================================================
-\cs_new_protected:Npn \dumbib@citation@count #1#2
-{
+\cs_new_protected:Npn \dumbib@citation@count #1#2 {
   \tl_gclear_new:c { g__dumbib_citation_count_label_ #1 _tl }
   \tl_gset:cn { g__dumbib_citation_count_label_ #1 _tl }{#2}
 }
@@ -83,8 +82,7 @@
 % version of \property_ref:nn function, again from LaTeX 2024
 % source. (See the note above.)
 % =============================================================
-\cs_new:Npn \dumbib_get_citation_count:n #1
-{
+\cs_new:Npn \dumbib_get_citation_count:n #1 {
   \tl_if_exist:cTF { g__dumbib_citation_count_label_ #1 _tl } {
     \tl_use:c { g__dumbib_citation_count_label_ #1 _tl }
   } {
@@ -100,67 +98,126 @@
 % #3: the year of publication
 % #4: actual reference text
 
-\NewDocumentCommand{\dumbibReferenceEntry}{mmmm}{
-  \prop_get:NnNTF \g_dumbib_info_prop {#1} \l_tmpa_tl {
+\NewDocumentCommand{\dumbibReferenceEntry}{ommmm}{
+  \prop_get:NnNTF \g_dumbib_info_prop {#2} \l_tmpa_tl {
     % the key already exists in the property list
-    \dumbibRaiseError[\tl_item:Nn \l_tmpa_tl {3}][#4]{
-      The~key~``\texttt{\tl_to_str:n {#1}}''~has~been~already~
+    \dumbibRaiseError[\tl_item:Nn \l_tmpa_tl {3}][#5]{
+      The~key~``\texttt{\tl_to_str:n {#2}}''~has~been~already~
       defined.~Consider~using~a~different~key~name.
-    } {Key~`\tl_to_str:n {#1}'~already~defined.}
+    } {Key~`\tl_to_str:n {#2}'~already~defined.}
   } {
     % store the author and year information in the property list
-    \prop_gput:Nnn \g_dumbib_info_prop  {#1} {{#2} {#3} {#4}}
-    \prop_gput:Nnn \g_dumbib_label_count_prop {#1} {0}
+    \IfValueTF {#1} { 
+      \prop_gput:Nnn \g_dumbib_info_prop  {#2} {{#3} {#4} {#5} {#1}}
+    } {
+      \prop_gput:Nnn \g_dumbib_info_prop  {#2} {{#3} {#4} {#5} {??}}
+    }
+    \prop_gput:Nnn \g_dumbib_label_count_prop {#2} {0}
 
     % store the key in token list for generating the bibliography later
-    \tl_gput_right:Nn \g_dumbib_keys_tl {{#1}}
+    \tl_gput_right:Nn \g_dumbib_keys_tl {{#2}}
   }
 }
 
 % =============================================================
-% function for citing the references
+% functions for citing the references
 % =============================================================
-\RenewDocumentCommand{\cite}{som}{
-  \prop_get:NnNTF \g_dumbib_info_prop {#3} \l_tmpa_tl {
+\NewDocumentCommand{\internalCite}{smmm}{
+  % Note that we used a `\' instead of a `c_space_token' or `~' to
+  % separate the <author> and (<year>) as this seemed to give the
+  % optimal spacing in the final PDF output.
+
+  % #2 refers to <author>
+  % #3 refers to <year>
+  % #4 refers to <optional>
+  
+  \IfBooleanTF {#1} {
+    % starred version (used in \cite*)
+    
+    #2 , \ #3 % print the citation as <author>, <year>
+    % #2 \ #3 % print the citation as <author> <year>
+    % #4 , \ #3 % print the citation as <optional>, <year>
+    % #4 \ #3   % print the citation as <optional> <year>
+    % #4        % print the citation as <optional>
+    
+  } {
+    % unstarred version (used in \cite)
+    
+    #2 \ ( #3 ) % print the citation as <author> (<year>)
+    % #4 \ ( #3 ) % print the citation as <optional> (<year>)
+    % #2 \ [ #4 ] % print the citation as <author> [<optional>]
+    % [ #4 ]      % print the citation as [<optional>]
+    
+  }
+}
+
+\RenewDocumentCommand{\cite}{soom}{
+  \prop_get:NnNTF \g_dumbib_info_prop {#4} \l_tmpa_tl {
     \IfBooleanTF {#1} {
       % starred version:       
       \IfValueTF {#2} {
         \dumbibRaiseError{
           Gave~an~optional~argument~with~the~starred~version~
-          while~citing~the~reference~``\texttt{\tl_to_str:n {#3}}''.
-        }{Command~cite*~does~not~take~an~optional~argument.}
+          while~citing~the~reference~``\texttt{\tl_to_str:n {#4}}''.
+        }{Command~cite*~does~not~take~any~optional~arguments.}
       } {
-        % print the citation as <author>, <year>
-        \hyperlink{#3}{
-          \tl_item:Nn \l_tmpa_tl {1} , \ % using '\' is better than using \c_space_token
-          \tl_item:Nn \l_tmpa_tl {2}
+        
+        \hyperlink{#4}{
+          \internalCite*%
+          {\tl_item:Nn \l_tmpa_tl {1}}%
+          {\tl_item:Nn \l_tmpa_tl {2}}%
+          {\tl_item:Nn \l_tmpa_tl {4}}
         }
       }
     } {
       % unstarred version: 
       \IfValueTF {#2} {
-        \token_if_eq_meaning:NNTF #2 a {
-          % print just the author name <author>
-          \hyperlink{#3}{\tl_item:Nn \l_tmpa_tl {1}}
-        } {
-          \token_if_eq_meaning:NNTF #2 y {
-            % print just the year of publication <year>
-            \hyperlink{#3}{\tl_item:Nn \l_tmpa_tl {2}}
+        \token_if_eq_meaning:NNTF #2 m {
+          \IfValueTF {#3} {
+            % print the citation as given in the third argument
+            \hyperlink{#4}{#3}
           } {
             \dumbibRaiseError{
-              Did~not~specify~the~proper~argument~(`a'~or~`y')~
-              while~citing~the~reference~``\texttt{\tl_to_str:n {#3}}''.
-            }{Command~cite~only~takes~`a'~or~`y'.}       
+              Did~not~specify~the~manual~citation~text~while~using~
+              the~``\texttt{[m]}''~(manual)~option~of~the~cite~command.
+            }{Command~cite[m]~takes~additional~argument.}
+          }
+        } {
+          \IfValueTF {#3} {
+            \dumbibRaiseError{
+              Gave~additional~argument~while~using~the~cite~command~
+              without~the~``\texttt{[m]}''~(manual)~option.~Only~the~
+              ``\texttt{cite[m]}''~command~takes~a~second~optional~argument.
+            }{Command~cite~does~not~take~additional~argument~without~[m]~flag.}
+          } {
+            \token_if_eq_meaning:NNTF #2 a {
+              % print just the author name <author>
+              \hyperlink{#4}{\tl_item:Nn \l_tmpa_tl {1}}
+            } {
+              \token_if_eq_meaning:NNTF #2 y {
+                % print just the year of publication <year>
+                \hyperlink{#4}{\tl_item:Nn \l_tmpa_tl {2}}
+              } {
+                \token_if_eq_meaning:NNTF #2 o {
+                  % print just the optional field <optional>
+                  \hyperlink{#4}{\tl_item:Nn \l_tmpa_tl {4}}
+                } {
+                  \dumbibRaiseError{
+                    Did~not~specify~the~proper~argument~(`a',~'y',~'o',~or~`m')~
+                    while~citing~the~reference~``\texttt{\tl_to_str:n {#4}}''.
+                  }{Command~cite~only~takes~`a',~'y',,~'o',~or~`m'.}       
+                }
+              }
+            }
           }
         }              
       } {
-        % print the citation as <author> (<year>)
-        % note that we used a `\' instead of a `c_space_token' or `~' to
-        % separate the <author> and (<year>) as this seemed to give the
-        % optimal spacing in the final PDF output
-        \hyperlink{#3}{
-          \tl_item:Nn \l_tmpa_tl {1} \ 
-          ( \tl_item:Nn \l_tmpa_tl {2} )
+
+        \hyperlink{#4}{
+          \internalCite%
+          {\tl_item:Nn \l_tmpa_tl {1}}%
+          {\tl_item:Nn \l_tmpa_tl {2}}%
+          {\tl_item:Nn \l_tmpa_tl {4}}
         }
       }
     }
@@ -168,7 +225,7 @@
     % -------------------------------------------------------------
     % update the label count in the label count property list
     % -------------------------------------------------------------
-    \prop_get:NnN \g_dumbib_label_count_prop {#3} \l_tmpb_tl
+    \prop_get:NnN \g_dumbib_label_count_prop {#4} \l_tmpb_tl
     
     \exp_args:NNe \int_set:Nn \l_tmpa_int {\l_tmpb_tl}
     \int_incr:N \l_tmpa_int
@@ -178,24 +235,34 @@
     \exp_args:NNe \tl_set:Nn \l_tmpb_tl {\int_use:N \l_tmpa_int}
     
     % use gput, lest the values are lost inside \begin{env} .. \end{env}
-    \prop_gput:NnV \g_dumbib_label_count_prop {#3} \l_tmpb_tl
+    \prop_gput:NnV \g_dumbib_label_count_prop {#4} \l_tmpb_tl
 
     % the label for backreference
-    \phantomsection \label{#3 - \int_use:N \l_tmpa_int} 
+    \phantomsection \label{#4 - \int_use:N \l_tmpa_int} 
   } {
     % the citation key does not exist.
     \dumbibRaiseError{
-      The~citation~key~``\texttt{\tl_to_str:n {#3}}''~
+      The~citation~key~``\texttt{\tl_to_str:n {#4}}''~
       does~not~exist!~Please~add~it~using~the~
       ``\texttt{\textbackslash dumbibReferenceEntry}''~command.
-    }{Key~`\tl_to_str:n {#3}'~does~not~exist.}    
+    }{Key~`\tl_to_str:n {#4}'~does~not~exist.}    
   }
 }
 
 % =============================================================
 % function for printing the bibliography at the end
 % =============================================================
-\NewDocumentCommand{\dumbibCreateBibliography}{s}{
+\NewDocumentCommand{\dumbibCreateBibliography}{so}{
+  \IfValueTF {#2} {
+    \token_if_eq_meaning:NNTF #2 o {
+    } {
+      \dumbibRaiseError{
+        Did~not~specify~the~proper~argument~while~using~
+        ``\texttt{dumbibCreateBibliography}''~command;~the~command~only~
+        accepts~\texttt{`o'}~as~an~optional~argument. 
+      }{Command~dumbibCreateBibliography~only~takes~'o'.} 
+    }
+  } {}
   \int_set:Nn \l_tmpa_int {\tl_count:N \g_dumbib_keys_tl}
   \int_compare:nNnTF {\l_tmpa_int} > {0} {
     \medskip
@@ -246,6 +313,14 @@
         \int_compare:nNnTF {\l_dumbib_tmpa_int} > {0} {
           % put the actual reference text in the LaTeX document
           \hypertarget{\tl_use:N \l_dumbib_key_tl}{
+
+            \IfValueTF {#2} {
+              \token_if_eq_meaning:NNTF #2 o {
+                % put the optional argument in square brackets
+                [ \tl_item:Nn \l_tmpa_tl {4} ] 
+              } {}
+            } {}
+            
             \tl_item:Nn \l_tmpa_tl {3}
           } ~
           \IfBooleanTF {#1} {
@@ -316,10 +391,10 @@
         % Once arXiv shifts to TeXLive 2024 or later, maybe I should use the following:
         % % \str_put_right:Ne \l_tmpa_str 
         % \exp_args:NNe \str_put_right:Nn \l_tmpa_str {
-        %   {\tl_to_str:N \l_dumbib_key_tl }
-        %   {\int_to_arabic:n {\l_dumbib_tmpa_int}}
+        % {\tl_to_str:N \l_dumbib_key_tl }
+        % {\int_to_arabic:n {\l_dumbib_tmpa_int}}
         % }
-        % ---------------------------------------------------------------------
+        %   ---------------------------------------------------------------------
         \immediate \write \@auxout {
           \token_to_str:N \dumbib@citation@count
           {\tl_use:N \l_dumbib_key_tl} {\int_to_arabic:n {\l_dumbib_tmpa_int}}
@@ -331,10 +406,10 @@
       % ---------------------------------------------------------------------
       % Once arXiv shifts to TeXLive 2024 or later, maybe I should use the following:
       % \immediate \write \@auxout {
-      %   \token_to_str:N \new@label@record
-      %   {__dumbib_keys_label_count__} {\str_use:N \l_tmpa_str}
+      % \token_to_str:N \new@label@record
+      % {__dumbib_keys_label_count__} {\str_use:N \l_tmpa_str}
       % }
-      % ---------------------------------------------------------------------
+      %   ---------------------------------------------------------------------
     }
     
   } {
@@ -349,9 +424,9 @@
 % =============================================================
 % random comments and resources for future me
 % =============================================================
-% Look at the book ``The LaTeX3 Interfaces'' (available here: https://texdoc.org/serve/interface3/0) for how to program in LaTeX. This is the de-facto reference and along with the book lshort (``The Not So Short Introduction to LaTeX''; available here: https://tobi.oetiker.ch/lshort/lshort.pdf), and some google/ChatGPT searches should suffice.
-%
-%
+% Look at the book ``The LaTeX3 Interfaces'' (available here: https://texdoc.org/serve/interface3/0) for how to program in LaTeX. This is the de-facto reference and along with the book lshort (``The Not So Short Introduction to LaTeX''; available here: https://tobi.oetiker.ch/lshort/lshort.pdf), and some google/ChatGPT searches should suffice. Also look at the LaTeX source document; contains the source code and is somewhat readable (https://ctan.mirror.globo.tech/macros/latex/base/source2e.pdf). 
+%  
+% 
 % Further, these resources may or may not be helpful: https://tex.stackexchange.com/questions/12668/where-do-i-start-latex-programming, https://pgfplots.sourceforge.net/TeX-programming-notes.pdf, https://www.alanshawn.com/latex3-tutorial/#latex3-token-list-and-string
 % 
 % 
