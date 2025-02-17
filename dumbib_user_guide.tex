@@ -276,9 +276,9 @@ Package dumbib Warning: Error on line 166! Key `talagrand2022' already
     \dumbibCreateBibliography[*][optional 'o' argument]
   \end{minted}
 
-  The following snippet creates a reference section similar to the one that appears at the end of this page:
+  The following snippet creates a reference section similar to the one at the end of this page:\footnote{Because of how \LaTeX\ manages hyperlinks, you might need two compilations for the references to appear properly.}
   \begin{minted}{latex}
-    \section*{References} % \addcontentsline{toc}{chapter}{References}
+    \section*{References} % \addcontentsline{toc}{section}{References}
     \dumbibCreateBibliography
   \end{minted}
 
@@ -288,5 +288,4 @@ Package dumbib Warning: Error on line 166! Key `talagrand2022' already
   The starred version of this command does not produce backward links to the places where the papers were cited in-text, whereas the unstarred version does. The optional \texttt{`o'} argument is useful in certain cases, such as when the user is using the citation style ``[XYZ+2025]'', where each entry in bibliography needs to begin with some text like ``[XYZ+2025]''. In such cases, the user can use the optional \texttt{`o'} argument, which will result in each reference entry beginning with \texttt{[<optional>]}, where the \texttt{<optional>} field is the one specified while creating the \dumbib\ reference database.
   \section*{References}
   \dumbibCreateBibliography
-
 \end{document}
