@@ -1,11 +1,5 @@
 abbreviation,venue_name,search_string
 ??,The Annals of Statistics,annals of statistics
-??,Cambridge University Press,cambridge university press
-??,MIT Press,mit press
-??,Foundations and Trends in Machine Learning,foundations and trends{\textregistered} in machine learning
-??,Journal of the Econometric Society,journal of the econometric society
-??,Annals of Operations Research,annals of operations research
-??,SIAM Journal on Control and Optimization,siam journal on control and optimization
 AAAI,AAAI Conference on Artificial Intelligence,conference on artificial intelligence
 AAMAS,International Conference on Autonomous Agents and Multiagent Systems,autonomous agents and multiagent systems
 ACL,Annual Meeting of the Association for Computational Linguistics,meeting of the association for computational linguistics
@@ -40,3 +34,10 @@ UAI,Conference on Uncertainty in Artificial Intelligence,uncertainty in artifici
 UIST,ACM Symposium on User Interface Software and Technology,user interface software and technology
 VLDB,International Conference on Very Large Data Bases,very large data bases
 WWW,World Wide Web Conference,world wide web conference
+??,Cambridge University Press,cambridge university press
+??,MIT Press,mit press
+??,Foundations and Trends in Machine Learning,foundations and trends{\textregistered} in machine learning
+??,Journal of the Econometric Society,journal of the econometric society
+??,Annals of Operations Research,annals of operations research
+??,SIAM Journal on Control and Optimization,siam journal on control and optimization
+??,Massachusetts Institute of Technology,massachusetts institute of technology

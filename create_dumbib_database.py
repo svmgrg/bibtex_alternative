@@ -77,7 +77,7 @@ def find_author_list(bib_dict):
     This function creates a list of authors in the original order as the
     bibtex entry. Each author is stored as dictionary of the type
     {'last_name': <last_name>, 'first_names': <initials of first names>}.
-    For example: {'last_name': 'Feynman', 'first_names': 'R.P.'}.
+    For example: {'last_name': 'Feynman', 'first_names': 'R. P.'}.
 
     Please note that there is no "," separating the names, i.e. we don't
     write "Feynman, R.P.". (Although, this behavior can be easily
@@ -153,7 +153,9 @@ def find_author_list(bib_dict):
                         while not remaining_name[j].isalpha():
                             first_names += remaining_name[j]
                             j += 1
-                        first_names += remaining_name[j] + '.'
+                        first_names += remaining_name[j] + '.\\ '
+            # remove the extra space and backslash at the end
+            first_names = first_names[:-2] 
 
             processed_author_list.append(
                 {'last_name': last_name.replace('_', ' '),
@@ -315,22 +317,23 @@ def process_bibtex_into_reference_list(bibtex_filename):
         raw_bib_info = bib_list[i+1]
 
         bib_dict = dict({
-            'INCLUDE_FLAG': True,        # whether to include this in bib
-            'author_string': '',         # a single string of all authors
-            'author_list': None,         # list of authors
-            'duplicate': False,          # if this is a duplicate entry
-            'id': None,                  # to keep track of all entries
-            'key': 'None',               # key for LaTeX referencing
-            'possible_duplicate': False, # for possible duplicates
-            'print_author_string': None, # this is what is printed in-text
-            'raw_data': None,            # the raw BibTeX entry
-            'title': '',
-            'type': None,                # stores 'article', 'book', etc.
-            'venue': None,               # venue of publication
-            'error_message': '',         # what error to print
-            'warning_message': '',       # what warnings to print
-            'year': 0,
-            'year_index': ''             # for (Feynman, 1960a, 1960b)
+            'INCLUDE_FLAG': True,            # whether to include this in bib
+            'author_string': '',             # a single string of all authors
+            'author_list': None,             # list of authors
+            'duplicate': False,              # if this is a duplicate entry
+            'id': None,                      # to keep track of all entries
+            'key': 'None',                   # key for LaTeX referencing
+            'possible_duplicate': False,     # for possible duplicates
+            'print_author_string': None,     # this is what is printed in-text
+            'raw_data': None,                # the raw BibTeX entry
+            'title': '',                     
+            'type': None,                    # stores 'article', 'book', etc.
+            'venue': None,                   # venue of publication
+            'error_message': '',             # what error to print
+            'warning_message': '',           # what warnings to print
+            'xyz_print_author_string': None, # for printing the XYZ+2025 style
+            'year': 0,                       
+            'year_index': ''                 # for (Feynman, 1960a, 1960b)
         })
 
         bib_dict['id'] = int((i - 1) / 2)
@@ -360,6 +363,7 @@ def sort_and_create_keys_for_references(reference_list):
         for authors in reference['author_list']:
             author_string += '{} {}, '.format(authors['last_name'],
                                               authors['first_names'])
+
         author_string = author_string[:-2]
         if author_string[-1] != '.':
             author_string += '.'
@@ -463,6 +467,25 @@ def sort_and_create_keys_for_references(reference_list):
             year_index_integer += 1
         else:
             year_index_integer = 0
+
+    #-----------------------------------------------------------------
+    # create the [XYZ+2025] style of author list
+    #-----------------------------------------------------------------
+    for reference in reference_list:
+        xyz_author_str = ''
+        num_authors = len(reference['author_list'])
+        if len(reference['author_list']) == 1:
+            author = reference['author_list'][0]
+            xyz_author_str += author['last_name'][:3]
+        else:
+            for authors in reference['author_list']:
+                xyz_author_str += authors['last_name'][0]
+            if len(xyz_author_str) > 4:
+                xyz_author_str = xyz_author_str[:4] + '+'
+        xyz_author_str += reference['year'] + reference['year_index']
+        print(reference['author_list'], xyz_author_str)
+
+        reference['xyz_print_author_string'] = xyz_author_str
         
     for reference in reference_list:
         if reference['INCLUDE_FLAG']:
@@ -496,11 +519,12 @@ def layout_latex_references(reference_list, dumbib_database_filename):
     with open(output_filename, 'w') as f:
         for reference in reference_list:
             if reference['INCLUDE_FLAG']:
-                print('\\dumbibReferenceEntry{{{key}}}'\
+                print('\\dumbibReferenceEntry[{optional}]{{{key}}}'\
                       '{{{print_author}}}{{{year}{year_index}}}%\n'\
                       '{{{author_list} ({year}{year_index}).'\
                       ' {title}. {venue}.}}\n'.format(
                           key = reference['key'],
+                          optional = reference['xyz_print_author_string'],
                           print_author = reference['print_author_string'],
                           year = reference['year'],
                           year_index = reference['year_index'],
