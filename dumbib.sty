@@ -375,8 +375,12 @@
     \end{list}
 
     \AtEndDocument{
-      % \l_tmpa_int contains the number of keys
-      %
+      % \l_tmpa_int contains the number of keys; even though we defined
+      % it before, just define it again. Not defining it again was
+      % giving some weird errors!?
+      % (perhaps because of the \AtEndDocument clause)
+      \int_set:Nn \l_tmpa_int {\tl_count:N \g_dumbib_keys_tl}
+
       % we know that \l_tmpa_int is greater than zero, otherwise
       % the code would never land in this region
       \int_set:Nn \l_tmpb_int {1}
