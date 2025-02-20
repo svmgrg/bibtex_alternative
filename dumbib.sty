@@ -1,5 +1,5 @@
 % user guide is available here: https://github.com/svmgrg/bibtex_alternative
-\ProvidesExplPackage{dumbib}{2024/02/16}{1.1}{%
+\ProvidesExplPackage{dumbib}{2024/02/19}{1.1}{%
   Package for providing forward and backward links while citing references.}
 \RequirePackage{hyperref}
 
@@ -51,7 +51,8 @@
 \DeclareOption{error_mode}{
   \RenewDocumentCommand{\dumbibRaiseError}{oomm}{
     % raise a short error message on the terminal
-    \msg_error:nnxx {dumbib} {dumbib_msg_two_args} {#4} {\msg_line_context:}
+    \msg_error:nnxx {dumbib} {dumbib_msg_two_args} {#4} {
+      \msg_line_context:}
   }
 }
 \ProcessOptions\relax
@@ -93,10 +94,11 @@
 % =============================================================
 % function for creating the dumbib references database
 % =============================================================
-% #1: the reference key which also serves as the function name
-% #2: the author names
-% #3: the year of publication
-% #4: actual reference text
+% #1: the optional text for this reference entry
+% #2: the reference key which also serves as the function name
+% #3: the author names
+% #4: the year of publication
+% #5: actual reference text (that appears in reference section)
 
 \NewDocumentCommand{\dumbibReferenceEntry}{ommmm}{
   \prop_get:NnNTF \g_dumbib_info_prop {#2} \l_tmpa_tl {
@@ -104,12 +106,14 @@
     \dumbibRaiseError[\tl_item:Nn \l_tmpa_tl {3}][#5]{
       The~key~``\texttt{\tl_to_str:n {#2}}''~has~been~already~
       defined.~Consider~using~a~different~key~name.
-    } {Key~`\tl_to_str:n {#2}'~already~defined.}
+    } {Key~``\tl_to_str:n {#2}''~already~defined.}
   } {
     % store the author and year information in the property list
-    \IfValueTF {#1} { 
+    \IfValueTF {#1} {
+      % the user provided the optional argument
       \prop_gput:Nnn \g_dumbib_info_prop  {#2} {{#3} {#4} {#5} {#1}}
     } {
+      % the user did not provide optional argument; store `??' instead
       \prop_gput:Nnn \g_dumbib_info_prop  {#2} {{#3} {#4} {#5} {??}}
     }
     \prop_gput:Nnn \g_dumbib_label_count_prop {#2} {0}
@@ -139,7 +143,6 @@
     % #4 , \ #3 % print the citation as <optional>, <year>
     % #4 \ #3   % print the citation as <optional> <year>
     % #4        % print the citation as <optional>
-    
   } {
     % unstarred version (used in \cite)
     
@@ -147,7 +150,6 @@
     % #4 \ ( #3 ) % print the citation as <optional> (<year>)
     % #2 \ [ #4 ] % print the citation as <author> [<optional>]
     % [ #4 ]      % print the citation as [<optional>]
-    
   }
 }
 
@@ -157,11 +159,14 @@
       % starred version:       
       \IfValueTF {#2} {
         \dumbibRaiseError{
-          Gave~an~optional~argument~with~the~starred~version~
-          while~citing~the~reference~``\texttt{\tl_to_str:n {#4}}''.
+          Gave~optional~argument(s)~with~the~starred~version~
+          of~the~cite~command,~while~citing~the~reference~
+          ``\texttt{\tl_to_str:n {#4}}'';~
+          ``\texttt{\textbackslash cite*}''~does~not~take~
+          any~optional~arguments.
         }{Command~cite*~does~not~take~any~optional~arguments.}
       } {
-        
+        % print the citation in-text as specified by \internalCite*
         \hyperlink{#4}{
           \internalCite*%
           {\tl_item:Nn \l_tmpa_tl {1}}%
@@ -172,47 +177,53 @@
     } {
       % unstarred version: 
       \IfValueTF {#2} {
-        \token_if_eq_meaning:NNTF #2 m {
+        \token_if_eq_meaning:NNTF {#2} m {
           \IfValueTF {#3} {
             % print the citation as given in the third argument
             \hyperlink{#4}{#3}
           } {
             \dumbibRaiseError{
-              Did~not~specify~the~manual~citation~text~while~using~
-              the~``\texttt{[m]}''~(manual)~option~of~the~cite~command.
-            }{Command~cite[m]~takes~additional~argument.}
+              Did~not~specify~the~manual~citation~text~while~
+              using~the~manual~mode~of~the~cite~command~
+              ``\texttt{\textbackslash cite[m]}''.
+            }{Command~cite[m]~requires~an~additional~argument.}
           }
         } {
           \IfValueTF {#3} {
             \dumbibRaiseError{
-              Gave~additional~argument~while~using~the~cite~command~
-              without~the~``\texttt{[m]}''~(manual)~option.~Only~the~
-              ``\texttt{cite[m]}''~command~takes~a~second~optional~argument.
-            }{Command~cite~does~not~take~additional~argument~without~[m]~flag.}
+              Gave~an~additional~argument~while~using~the~cite~
+              command~without~the~``\texttt{[m]}''~(manual)~
+              option.~Only~the~``\texttt{\textbackslash cite[m]}''
+              ~command~takes~a~second~optional~argument.
+            }{Command~cite~does~not~take~additional~argument~
+              without~[m]~flag.}
           } {
-            \token_if_eq_meaning:NNTF #2 a {
+            \token_if_eq_meaning:NNTF {#2} a {
               % print just the author name <author>
               \hyperlink{#4}{\tl_item:Nn \l_tmpa_tl {1}}
             } {
-              \token_if_eq_meaning:NNTF #2 y {
+              \token_if_eq_meaning:NNTF {#2} y {
                 % print just the year of publication <year>
                 \hyperlink{#4}{\tl_item:Nn \l_tmpa_tl {2}}
               } {
-                \token_if_eq_meaning:NNTF #2 o {
+                \token_if_eq_meaning:NNTF {#2} o {
                   % print just the optional field <optional>
                   \hyperlink{#4}{\tl_item:Nn \l_tmpa_tl {4}}
                 } {
                   \dumbibRaiseError{
-                    Did~not~specify~the~proper~argument~(`a',~'y',~'o',~or~`m')~
-                    while~citing~the~reference~``\texttt{\tl_to_str:n {#4}}''.
-                  }{Command~cite~only~takes~`a',~'y',,~'o',~or~`m'.}       
+                    Did~not~specify~the~proper~argument~
+                    (`\texttt{a}',~`\texttt{y}',~`\texttt{o}',~
+                    or~`\texttt{m}')~
+                    while~citing~the~reference~
+                    ``\texttt{\tl_to_str:n {#4}}''.
+                  }{Command~cite~only~takes~'a',~'y',~'o',~or~'m'~flags.}
                 }
               }
             }
           }
         }              
       } {
-
+        % print the citation in-text as specified by \internalCite
         \hyperlink{#4}{
           \internalCite%
           {\tl_item:Nn \l_tmpa_tl {1}}%
@@ -225,27 +236,29 @@
     % -------------------------------------------------------------
     % update the label count in the label count property list
     % -------------------------------------------------------------
+    % Note how in the following, I have used two different local
+    % variables: \l_tmpb_tl and \l_tmpa_int. This is because, anything
+    % that comes from a token list is a token list type of variable and
+    % cannot be treated as an integer.
     \prop_get:NnN \g_dumbib_label_count_prop {#4} \l_tmpb_tl
-    
     \exp_args:NNe \int_set:Nn \l_tmpa_int {\l_tmpb_tl}
     \int_incr:N \l_tmpa_int
-    % need to use \exp_args:NNe since \tl_set:Ne doesn't work with
-    % TeXLive 2023, which is used by arXiv at the moment
-    % \tl_set:Ne \l_tmpb_tl {\int_use:N \l_tmpa_int}
     \exp_args:NNe \tl_set:Nn \l_tmpb_tl {\int_use:N \l_tmpa_int}
     
     % use gput, lest the values are lost inside \begin{env} .. \end{env}
     \prop_gput:NnV \g_dumbib_label_count_prop {#4} \l_tmpb_tl
 
+    % -------------------------------------------------------------
     % the label for backreference
-    \phantomsection \label{#4 - \int_use:N \l_tmpa_int} 
+    % -------------------------------------------------------------
+    \phantomsection \label{#4 __ \int_use:N \l_tmpa_int} 
   } {
     % the citation key does not exist.
     \dumbibRaiseError{
       The~citation~key~``\texttt{\tl_to_str:n {#4}}''~
       does~not~exist!~Please~add~it~using~the~
       ``\texttt{\textbackslash dumbibReferenceEntry}''~command.
-    }{Key~`\tl_to_str:n {#4}'~does~not~exist.}    
+    }{Key~``\tl_to_str:n {#4}''~does~not~exist.}    
   }
 }
 
@@ -254,15 +267,16 @@
 % =============================================================
 \NewDocumentCommand{\dumbibCreateBibliography}{so}{
   \IfValueTF {#2} {
-    \token_if_eq_meaning:NNTF #2 o {
+    \token_if_eq_meaning:NNTF {#2} o {
     } {
       \dumbibRaiseError{
         Did~not~specify~the~proper~argument~while~using~
-        ``\texttt{dumbibCreateBibliography}''~command;~the~command~only~
-        accepts~\texttt{`o'}~as~an~optional~argument. 
-      }{Command~dumbibCreateBibliography~only~takes~'o'.} 
+        ``\texttt{dumbibCreateBibliography}''~command;~it~only~
+        accepts~`\texttt{o}'~as~an~optional~argument. 
+      }{Command~dumbibCreateBibliography~takes~only~'o'~as~flag.} 
     }
   } {}
+  
   \int_set:Nn \l_tmpa_int {\tl_count:N \g_dumbib_keys_tl}
   \int_compare:nNnTF {\l_tmpa_int} > {0} {
     \medskip
@@ -279,19 +293,13 @@
       \item % create a new \item entry in the list environment
         
         % -------------------------------------------------------------
-        % get the key name and store the reference information
-        % from the \g_dumbib_info_prop property list in \l_tmpa_tl
+        % store the key name in \l_dumbib_key_tl and store the
+        % reference information from the \g_dumbib_info_prop property
+        % list in \l_tmpa_tl
         % -------------------------------------------------------------
-        % need to use \exp_args:NNe since \tl_set:Ne doesn't work with
-        % TeXLive 2023, which is used by arXiv at the moment
-        % \tl_set:Ne \l_dumbib_key_tl {
-        % \tl_item:Nn \g_dumbib_keys_tl {\l_tmpb_int}}
         \exp_args:NNe \tl_set:Nn \l_dumbib_key_tl {
           \tl_item:Nn \g_dumbib_keys_tl {\l_tmpb_int}}
         
-        % need the following complicated and weird expression because
-        % (i)  \prop_get:NoN is not defined, and
-        % (ii) \exp_args:NNoN is not defined
         \exp_args:NNoo \prop_get:NnN \g_dumbib_info_prop {
           \l_dumbib_key_tl} {\exp_not:N \l_tmpa_tl}
         
@@ -300,14 +308,8 @@
         % and store it in \l_dumbib_tmpa_int
         % -------------------------------------------------------------
         \exp_args:NNe \int_set:Nn \l_dumbib_tmpa_int {
-          % ---------------------------------------------------------------------
-          % Once arXiv shifts to TeXLive 2024 or later, maybe I should use
-          % the following:
-          % % \property_ref:ee {\exp_not:N __dumbib_keys_label_count__}
-          % \exp_args:Nee \property_ref:nn {\exp_not:N __dumbib_keys_label_count__} {
-          % \tl_use:N \l_dumbib_key_tl}
-          % ---------------------------------------------------------------------
-          \exp_args:Ne \dumbib_get_citation_count:n {\tl_use:N \l_dumbib_key_tl}
+          \exp_args:Ne \dumbib_get_citation_count:n {
+            \tl_use:N \l_dumbib_key_tl}
         }
 
         \int_compare:nNnTF {\l_dumbib_tmpa_int} > {0} {
@@ -315,39 +317,44 @@
           \hypertarget{\tl_use:N \l_dumbib_key_tl}{
 
             \IfValueTF {#2} {
-              \token_if_eq_meaning:NNTF #2 o {
+              \token_if_eq_meaning:NNTF {#2} o {
                 % put the optional argument in square brackets
                 [ \tl_item:Nn \l_tmpa_tl {4} ] 
-              } {}
+              } {
+                % this never runs; already taken care of at the beginning
+              }
             } {}
             
             \tl_item:Nn \l_tmpa_tl {3}
-          } ~
+          }
+          
           \IfBooleanTF {#1} {
             % starred version does not add backlinks
-          } {       
+          } {
+            ~ % add a space
+            
             % -----------------------------------------------------------
             % add backlinks to pages where this reference was cited on
             % -----------------------------------------------------------
             \int_compare:nNnTF {\l_dumbib_tmpa_int} = {1} {
               {\tiny (cited~on~page~
-                \pageref{\tl_use:N \l_dumbib_key_tl - 1})}
+                \pageref{\tl_use:N \l_dumbib_key_tl __ 1})}
             } {
               \int_compare:nNnTF {\l_dumbib_tmpa_int} = {2} {
                 {\tiny (cited~on~pages~
-                  \pageref{\tl_use:N \l_dumbib_key_tl - 1}~and~
-                  \pageref{\tl_use:N \l_dumbib_key_tl - 2})}
+                  \pageref{\tl_use:N \l_dumbib_key_tl __ 1}~and~
+                  \pageref{\tl_use:N \l_dumbib_key_tl __ 2})}
               } {
                 {\tiny (cited~on~pages~
-                  \pageref{\tl_use:N \l_dumbib_key_tl - 1},~}
+                  \pageref{\tl_use:N \l_dumbib_key_tl __ 1},~}
                 \int_set:Nn \l_dumbib_tmpb_int {2}
                 \int_do_while:nNnn
                 {\l_dumbib_tmpb_int} < {\l_dumbib_tmpa_int} {
-                  {\tiny \pageref{\tl_use:N \l_dumbib_key_tl -
+                  {\tiny \pageref{\tl_use:N \l_dumbib_key_tl __
                       \int_use:N \l_dumbib_tmpb_int},~}
                   \int_incr:N \l_dumbib_tmpb_int
                 } {
-                  \tiny and~ \pageref{\tl_use:N \l_dumbib_key_tl -
+                  \tiny and~ \pageref{\tl_use:N \l_dumbib_key_tl __
                     \int_use:N \l_dumbib_tmpa_int})
                 }
               }
@@ -360,58 +367,37 @@
             has~not~been~used~even~once~in~the~text.~Consider~removing~
             this~entry.~(Note~that~\texttt{dumbib}~does~{\bf not}~have~
             a~command~equivalent~to~``\texttt{\textbackslash~nocite}''.)
-          }{Key~`\tl_to_str:N \l_dumbib_key_tl'~has~never~been~cited.}
+          }{Key~``\tl_to_str:N \l_dumbib_key_tl''~has~never~been~cited.}
         }
+        
         \int_incr:N \l_tmpb_int % increment counter for outer while loop
       }    
     \end{list}
 
     \AtEndDocument{
-      \str_clear:N \l_tmpa_str
-      
-      \int_set:Nn \l_tmpa_int {\tl_count:N \g_dumbib_keys_tl}
+      % \l_tmpa_int contains the number of keys
+      %
       % we know that \l_tmpa_int is greater than zero, otherwise
-      % the code would never land in this thread
+      % the code would never land in this region
       \int_set:Nn \l_tmpb_int {1}
       \int_do_while:nNnn {\l_tmpb_int} < {\l_tmpa_int + 1} {
-        % -------------------------------------------------------------
+        
         % get the key name and store it in \l_dumbib_key_tl
-        % -------------------------------------------------------------
         \exp_args:NNe \tl_set:Nn \l_dumbib_key_tl {
           \tl_item:Nn \g_dumbib_keys_tl {\l_tmpb_int}}
-        % -------------------------------------------------------------
-        % get the label count for this key in \l_dumbib_tmpa_int
-        % -------------------------------------------------------------
+        
+        % get the label count for this key in \l_tmpb_tl
         \exp_args:NNoo \prop_get:NnN \g_dumbib_label_count_prop {
           \l_dumbib_key_tl} {\exp_not:N \l_tmpb_tl}
-        \exp_args:NNe \int_set:Nn \l_dumbib_tmpa_int {\l_tmpb_tl}
 
-        % store the number of times this reference has been cited in the text
-        % ---------------------------------------------------------------------
-        % Once arXiv shifts to TeXLive 2024 or later, maybe I should use the following:
-        % % \str_put_right:Ne \l_tmpa_str 
-        % \exp_args:NNe \str_put_right:Nn \l_tmpa_str {
-        % {\tl_to_str:N \l_dumbib_key_tl }
-        % {\int_to_arabic:n {\l_dumbib_tmpa_int}}
-        % }
-        %   ---------------------------------------------------------------------
+        % store the number of times this reference has been cited
         \immediate \write \@auxout {
           \token_to_str:N \dumbib@citation@count
-          {\tl_use:N \l_dumbib_key_tl} {\int_to_arabic:n {\l_dumbib_tmpa_int}}
+          {\tl_use:N \l_dumbib_key_tl} {\tl_use:N \l_tmpb_tl}
         }
-
         \int_incr:N \l_tmpb_int % increment counter for the while loop
       }
-
-      % ---------------------------------------------------------------------
-      % Once arXiv shifts to TeXLive 2024 or later, maybe I should use the following:
-      % \immediate \write \@auxout {
-      % \token_to_str:N \new@label@record
-      % {__dumbib_keys_label_count__} {\str_use:N \l_tmpa_str}
-      % }
-      %   ---------------------------------------------------------------------
     }
-    
   } {
     % no references exist.
     \dumbibRaiseError{
@@ -425,7 +411,7 @@
 % random comments and resources for future me
 % =============================================================
 % Look at the book ``The LaTeX3 Interfaces'' (available here: https://texdoc.org/serve/interface3/0) for how to program in LaTeX. This is the de-facto reference and along with the book lshort (``The Not So Short Introduction to LaTeX''; available here: https://tobi.oetiker.ch/lshort/lshort.pdf), and some google/ChatGPT searches should suffice. Also look at the LaTeX source document; contains the source code and is somewhat readable (https://ctan.mirror.globo.tech/macros/latex/base/source2e.pdf). 
-%  
+% 
 % 
 % Further, these resources may or may not be helpful: https://tex.stackexchange.com/questions/12668/where-do-i-start-latex-programming, https://pgfplots.sourceforge.net/TeX-programming-notes.pdf, https://www.alanshawn.com/latex3-tutorial/#latex3-token-list-and-string
 % 
@@ -442,5 +428,41 @@
 % | table, section, subsection, chapter, etc. 
 % 
 % 
-% At a few places, I needed to use something like \exp_args:NNe, since \int_set:Ne was not defined for my TeXLive version; however it is possible that some newer LaTeX interfaces have this?
-
+% At a few places, I needed to use something like
+% \exp_args:NNe, since \int_set:Ne
+% since it was not defined for my TeXLive version; however it is possible that some newer LaTeX interfaces have this?
+% For instance, I couldn't use \tl_set:Ne:
+% | need to use \exp_args:NNe since \tl_set:Ne doesn't work with
+% | TeXLive 2023, which is used by arXiv at the moment
+% | \tl_set:Ne \l_tmpb_tl {\int_use:N \l_tmpa_int}
+% 
+% need the following complicated and weird expression because
+% (i)  \prop_get:NoN is not defined, and
+% (ii) \exp_args:NNoN is not defined
+% | \exp_args:NNoo \prop_get:NnN \g_dumbib_info_prop {
+% |  \l_dumbib_key_tl} {\exp_not:N \l_tmpa_tl}
+% 
+% need to use \exp_args:NNe since \tl_set:Ne doesn't work with
+% TeXLive 2023, which is used by arXiv at the moment
+% \tl_set:Ne \l_dumbib_key_tl {
+% \tl_item:Nn \g_dumbib_keys_tl {\l_tmpb_int}}
+% 
+% 
+% 
+% When using
+% \token_if_eq_meaning:NNTF #2 a      % this is WRONG!!
+% it is important to enclose #2 in braces:
+% \token_if_eq_meaning:NNTF #1 a      % this is correct!
+% Otherwise, things breakdown! For instance, see this example:
+% | \NewDocumentCommand{\fn}{m}{
+% |   \token_if_eq_meaning:NNTF {#1} a {True!}
+% |   {\token_if_eq_meaning:NNTF {#1} b {True!}
+% |     {False!}}
+% | }
+% | AAAA \\
+% | 1. \fn{a} \\
+% | 2. \fn{b} \\
+% | 3. \fn{1} \\
+% | 4. \fn{pcb} \\
+% | 5. \fn{$} \\
+% | AAAA
