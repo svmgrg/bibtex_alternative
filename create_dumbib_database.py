@@ -483,8 +483,6 @@ def sort_and_create_keys_for_references(reference_list):
             if len(xyz_author_str) > 4:
                 xyz_author_str = xyz_author_str[:4] + '+'
         xyz_author_str += reference['year'] + reference['year_index']
-        print(reference['author_list'], xyz_author_str)
-
         reference['xyz_print_author_string'] = xyz_author_str
         
     for reference in reference_list:
